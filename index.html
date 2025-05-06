@@ -2385,6 +2385,245 @@
             });
         };
 
+        // Fix 1: Add this code right before APP.INIT.loadAssets in the existing codebase
+// This creates a fallback mechanism to proceed even if model loading fails
+APP.INIT.loadAssets = function() {
+    // Start loading progress
+    let totalAssets = 1; // Start with 1 for the 3D model
+    let loadedAssets = 0;
+    
+    // Add a timeout to prevent getting stuck on loading
+    const loadingTimeout = setTimeout(() => {
+        console.log("Loading timeout reached - forcing completion");
+        // Force loading to complete if it takes too long
+        if (loadedAssets < totalAssets) {
+            // Create fallback model
+            APP.MODEL.createFallbackModel();
+            
+            // Hide loading overlay
+            APP.ELEMENTS.loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                APP.ELEMENTS.loadingOverlay.style.display = 'none';
+                APP.STATE.isAppInitialized = true;
+            }, APP.CONFIG.FADE_DURATION || 800);
+        }
+    }, 10000); // 10 second timeout
+    
+    // Update loading progress
+    const updateProgress = () => {
+        loadedAssets++;
+        const progress = (loadedAssets / totalAssets) * 100;
+        if (APP.ELEMENTS.loadingBar) {
+            APP.ELEMENTS.loadingBar.style.width = `${progress}%`;
+        }
+        
+        if (loadedAssets >= totalAssets) {
+            // All assets loaded, clear timeout
+            clearTimeout(loadingTimeout);
+            
+            // Initialize app
+            setTimeout(() => {
+                APP.ELEMENTS.loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    APP.ELEMENTS.loadingOverlay.style.display = 'none';
+                    APP.STATE.isAppInitialized = true;
+                }, APP.CONFIG.FADE_DURATION || 800);
+            }, 500);
+        }
+    };
+    
+    // For this demo, we'll simulate loading audio
+    APP.INIT.setupAudio();
+    
+    // Simulate loading audio assets - will increment loadedAssets
+    setTimeout(updateProgress, 3000);
+    
+    // Load 3D model (actual loading is in APP.MODEL.loadModel)
+    APP.MODEL.loadModel();
+};
+
+// Fix 2: Replace the Three.js model loading function with this more robust version
+APP.MODEL.loadModel = function() {
+    try {
+        // Display loading notification
+        if (APP.UI && APP.UI.showNotification) {
+            APP.UI.showNotification('Loading Model', 'Loading your 3D model...');
+        }
+        
+        const modelUrl = APP.CONFIG.MODEL_URL;
+        
+        // Create fallback model immediately to use if loading fails
+        APP.MODEL.createFallbackModel();
+        
+        // If no URL is specified, just use the fallback model
+        if (!modelUrl) {
+            console.log("No model URL specified, using fallback model");
+            return;
+        }
+        
+        try {
+            // Determine the file extension
+            const fileExtension = modelUrl.split('.').pop().toLowerCase();
+            
+            if (fileExtension === 'glb' || fileExtension === 'gltf') {
+                // Load GLTF model if loader exists
+                if (typeof THREE.GLTFLoader === 'function') {
+                    const loader = new THREE.GLTFLoader();
+                    
+                    // Use DRACOLoader if available
+                    if (typeof THREE.DRACOLoader === 'function') {
+                        const dracoLoader = new THREE.DRACOLoader();
+                        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+                        loader.setDRACOLoader(dracoLoader);
+                    }
+                    
+                    loader.load(
+                        modelUrl,
+                        (gltf) => {
+                            APP.MODEL.onModelLoaded(gltf.scene);
+                            
+                            // Handle animations if present
+                            if (gltf.animations && gltf.animations.length > 0) {
+                                const mixer = new THREE.AnimationMixer(gltf.scene);
+                                APP.THREE.animationMixers.push(mixer);
+                                
+                                gltf.animations.forEach((clip) => {
+                                    mixer.clipAction(clip).play();
+                                });
+                            }
+                        },
+                        (xhr) => {
+                            // Loading progress
+                            if (xhr.total > 0) {
+                                const percentComplete = (xhr.loaded / xhr.total) * 100;
+                                if (APP.ELEMENTS.loadingBar) {
+                                    APP.ELEMENTS.loadingBar.style.width = `${percentComplete}%`;
+                                }
+                            }
+                        },
+                        (error) => {
+                            console.error('Error loading model:', error);
+                            if (APP.UI && APP.UI.showNotification) {
+                                APP.UI.showNotification('Error', 'Failed to load 3D model. Using fallback model.', 'error');
+                            }
+                        }
+                    );
+                } else {
+                    console.error('GLTFLoader not available');
+                    // We already created a fallback model above
+                }
+            } else {
+                console.log('Using fallback model - custom model loaders not implemented');
+                // We already created a fallback model above
+            }
+        } catch (e) {
+            console.error('Error in model loading process:', e);
+            // We already created a fallback model above
+        }
+    } catch (e) {
+        console.error('Critical error in model loading:', e);
+        // Force loading to complete
+        if (APP.ELEMENTS.loadingOverlay) {
+            APP.ELEMENTS.loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                APP.ELEMENTS.loadingOverlay.style.display = 'none';
+            }, 800);
+        }
+    }
+};
+
+// Fix 3: Add this safer initialization code at the end of the file
+window.addEventListener('load', function() {
+    try {
+        // Initialize only if not already initialized
+        if (typeof APP !== 'undefined' && !APP.STATE.isAppInitialized) {
+            APP.INIT.initialize();
+        } else if (typeof APP === 'undefined') {
+            console.error('APP object not defined properly');
+            
+            // Emergency fix: Hide loading screen if APP is undefined
+            const loadingOverlay = document.querySelector('.loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 800);
+            }
+        }
+    } catch (e) {
+        console.error('Error during initialization:', e);
+        
+        // Emergency fix: Hide loading screen if there's an error
+        const loadingOverlay = document.querySelector('.loading-overlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 800);
+        }
+    }
+});
+
+// Fix 4: Add this fallback error handling for the Three.js setup
+try {
+    if (typeof APP !== 'undefined' && APP.MODEL && !APP.MODEL.initializeScene) {
+        // Add a fallback scene initializer
+        APP.MODEL.initializeScene = function() {
+            try {
+                // Create scene
+                APP.THREE.scene = new THREE.Scene();
+                APP.THREE.scene.background = new THREE.Color(0x0a1015);
+                
+                // Create camera
+                APP.THREE.camera = new THREE.PerspectiveCamera(
+                    45,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    1000
+                );
+                
+                // Set initial camera position
+                APP.THREE.camera.position.set(0, 0, 5);
+                
+                // Create renderer
+                APP.THREE.renderer = new THREE.WebGLRenderer({
+                    canvas: APP.ELEMENTS.modelCanvas,
+                    antialias: true,
+                    alpha: true
+                });
+                
+                APP.THREE.renderer.setSize(
+                    window.innerWidth,
+                    window.innerHeight
+                );
+                
+                // Add basic light
+                const light = new THREE.DirectionalLight(0xffffff, 1);
+                light.position.set(1, 1, 1);
+                APP.THREE.scene.add(light);
+                
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+                APP.THREE.scene.add(ambientLight);
+                
+                // Start animation loop
+                const animate = function() {
+                    requestAnimationFrame(animate);
+                    if (APP.THREE.renderer && APP.THREE.scene && APP.THREE.camera) {
+                        APP.THREE.renderer.render(APP.THREE.scene, APP.THREE.camera);
+                    }
+                };
+                
+                animate();
+                
+            } catch (e) {
+                console.error('Error in fallback scene initialization:', e);
+            }
+        };
+    }
+} catch (e) {
+    console.error('Error setting up fallback scene initializer:', e);
+}
+        
         // Load assets
         APP.INIT.loadAssets = function() {
             // Start loading progress
