@@ -660,7 +660,7 @@ loadModel: function() {
         console.error('Error in model loading process:', error);
         this.showNotification('Error', 'An unexpected error occurred while loading the 3D model: ' + error.message, 'error');
     }
-}
+},
         
         
         // Create the rosary sequence
