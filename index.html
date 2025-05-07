@@ -179,6 +179,89 @@
         </div>
     </div>
 
+    <!-- Add this script to your index.html right before your app.js script -->
+<script>
+// Helper script to debug 3D model loading
+window.modelDebugInfo = {
+    browserInfo: navigator.userAgent,
+    webGLSupport: !!window.WebGLRenderingContext,
+    threeJSVersion: null,
+    errors: []
+};
+
+// Log errors to our debug object
+window.addEventListener('error', function(event) {
+    window.modelDebugInfo.errors.push({
+        message: event.message,
+        source: event.filename,
+        lineNo: event.lineno,
+        colNo: event.colno,
+        timestamp: new Date().toISOString()
+    });
+    console.log('Error logged:', event.message);
+});
+
+// Add a function to check if a URL is accessible
+window.checkURLAccess = function(url, callback) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('HEAD', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            callback(xhr.status === 200, xhr.status, xhr.statusText);
+        }
+    };
+    xhr.onerror = function() {
+        callback(false, 0, 'Network error');
+    };
+    xhr.send();
+};
+
+// Record Three.js version once it loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.THREE) {
+        window.modelDebugInfo.threeJSVersion = THREE.REVISION;
+        console.log('Three.js version:', THREE.REVISION);
+        
+        // Verify the model URL in the config
+        if (window.ROSARY_CONFIG && window.ROSARY_CONFIG.model && window.ROSARY_CONFIG.model.url) {
+            console.log('Model URL from config:', window.ROSARY_CONFIG.model.url);
+            window.checkURLAccess(window.ROSARY_CONFIG.model.url, function(success, status, statusText) {
+                console.log('Model URL accessible:', success, 'Status:', status, statusText);
+                window.modelDebugInfo.modelURLAccess = {success, status, statusText};
+            });
+        } else {
+            console.warn('No model URL found in config');
+        }
+    } else {
+        console.error('Three.js not loaded');
+    }
+});
+
+// Add a debug button to the page
+document.addEventListener('DOMContentLoaded', function() {
+    const debugButton = document.createElement('button');
+    debugButton.textContent = 'Debug Model Loading';
+    debugButton.style.position = 'fixed';
+    debugButton.style.bottom = '10px';
+    debugButton.style.right = '10px';
+    debugButton.style.zIndex = '9999';
+    debugButton.style.padding = '8px 12px';
+    debugButton.style.backgroundColor = '#8B6C42';
+    debugButton.style.color = '#F5EFE0';
+    debugButton.style.border = 'none';
+    debugButton.style.borderRadius = '4px';
+    debugButton.style.cursor = 'pointer';
+    debugButton.style.fontFamily = 'Cinzel, serif';
+    
+    debugButton.onclick = function() {
+        console.log('Debug Info:', window.modelDebugInfo);
+        alert('Debug info logged to console. Press F12 to view.');
+    };
+    
+    document.body.appendChild(debugButton);
+});
+</script>
+    
     <!-- Core app logic -->
     <script src="js/app.js"></script>
 </body>
