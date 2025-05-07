@@ -529,92 +529,50 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Load 3D model
         loadModel: function() {
-            const self = this;
+    const self = this;
+    
+    // Create the fallback model first as a backup
+    this.createFallbackModel();
+    
+    // Skip external model loading if no URL specified
+    if (!this.config.model.url) {
+        console.log('No model URL specified, using fallback model');
+        return;
+    }
+    
+    try {
+        // Check for GLTFLoader differently
+        if (typeof THREE.GLTFLoader === 'function' || 
+            (typeof GLTFLoader === 'function') ||
+            (window.GLTFLoader)) {
             
-            // Create the fallback model first as a backup
-            this.createFallbackModel();
+            // Determine which loader to use based on what's available
+            const LoaderClass = THREE.GLTFLoader || window.GLTFLoader || GLTFLoader;
+            const loader = new LoaderClass();
             
-            // Skip external model loading if no URL specified
-            if (!this.config.model.url) {
-                console.log('No model URL specified, using fallback model');
-                return;
-            }
-            
-            try {
-                // Check if GLTFLoader is available
-                if (typeof THREE.GLTFLoader === 'function') {
-                    const loader = new THREE.GLTFLoader();
-                    
-                    // Use DRACOLoader if available
-                    if (typeof THREE.DRACOLoader === 'function') {
-                        const dracoLoader = new THREE.DRACOLoader();
-                        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
-                        loader.setDRACOLoader(dracoLoader);
-                    }
-                    
-                    loader.load(
-                        this.config.model.url,
-                        function(gltf) {
-                            // Remove fallback model
-                            if (self.three.model) {
-                                self.three.scene.remove(self.three.model);
-                            }
-                            
-                            // Add the new model
-                            self.three.model = gltf.scene;
-                            self.three.scene.add(gltf.scene);
-                            
-                            // Apply scale
-                            gltf.scene.scale.set(
-                                self.config.model.scale,
-                                self.config.model.scale,
-                                self.config.model.scale
-                            );
-                            
-                            // Center the model
-                            const box = new THREE.Box3().setFromObject(gltf.scene);
-                            const center = box.getCenter(new THREE.Vector3());
-                            gltf.scene.position.x = -center.x;
-                            gltf.scene.position.y = -center.y;
-                            gltf.scene.position.z = -center.z;
-                            
-                            // Fit camera to model
-                            const size = box.getSize(new THREE.Vector3());
-                            const maxDim = Math.max(size.x, size.y, size.z);
-                            const fov = self.three.camera.fov * (Math.PI / 180);
-                            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-                            cameraZ *= 1.5;
-                            
-                            self.three.camera.position.z = cameraZ;
-                            
-                            // Enable shadows
-                            gltf.scene.traverse(function(node) {
-                                if (node.isMesh) {
-                                    node.castShadow = true;
-                                    node.receiveShadow = true;
-                                }
-                            });
-                            
-                            self.state.isModelLoaded = true;
-                            self.showNotification('Model Loaded', 'Your 3D model has been loaded successfully.');
-                        },
-                        function(xhr) {
-                            // Loading progress
-                            const percentComplete = (xhr.loaded / xhr.total) * 100;
-                            self.elements.loadingBar.style.width = `${percentComplete}%`;
-                        },
-                        function(error) {
-                            console.error('Error loading model:', error);
-                            self.showNotification('Error', 'Failed to load 3D model. Using fallback model.', 'error');
-                        }
-                    );
-                } else {
-                    console.warn('GLTFLoader not available. Using fallback model.');
+            // Continue with your loading code...
+            loader.load(
+                this.config.model.url,
+                function(gltf) {
+                    console.log("Model loaded successfully!", gltf);
+                    // Rest of your success function
+                },
+                function(xhr) {
+                    console.log("Loading progress: " + (xhr.loaded / xhr.total * 100) + "%");
+                },
+                function(error) {
+                    console.error("Error loading model:", error);
+                    self.showNotification('Error Loading Model', 'Error details: ' + error.message, 'error');
+                    // Fallback model is already created
                 }
-            } catch (error) {
-                console.error('Error in model loading process:', error);
-            }
-        },
+            );
+        } else {
+            console.warn('GLTFLoader not available. Using fallback model.');
+        }
+    } catch (error) {
+        console.error('Error in model loading process:', error);
+    }
+}
         
         // Create a simple fallback rosary model
         createFallbackModel: function() {
