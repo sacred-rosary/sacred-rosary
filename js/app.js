@@ -531,26 +531,104 @@ document.addEventListener('DOMContentLoaded', function() {
         loadModel: function() {
             const self = this;
             
+            // Create fallback model first as a backup
+            this.createFallbackModel();
+            
             // Skip external model loading if no URL specified
             if (!this.config.model.url) {
-                console.log('No model URL specified, using simple model');
-                this.createSimpleModel(); // Renamed function or different approach
+                console.log('No model URL specified, using fallback model');
                 return;
             }
             
             try {
-                // Rest of your loading code...
+                // Check if GLTFLoader is available (THREE.GLTFLoader or global GLTFLoader)
+                if (typeof THREE.GLTFLoader === 'function' || typeof window.GLTFLoader === 'function') {
+                    // Use whatever loader is available
+                    const LoaderClass = THREE.GLTFLoader || window.GLTFLoader;
+                    const loader = new LoaderClass();
+                    
+                    // Use DRACOLoader if available
+                    if (typeof THREE.DRACOLoader === 'function' || typeof window.DRACOLoader === 'function') {
+                        const DracoLoaderClass = THREE.DRACOLoader || window.DRACOLoader;
+                        const dracoLoader = new DracoLoaderClass();
+                        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+                        loader.setDRACOLoader(dracoLoader);
+                    }
+                    
+                    loader.load(
+                        this.config.model.url,
+                        function(gltf) {
+                            console.log("Model loaded successfully!");
+                            
+                            // Remove fallback model
+                            if (self.three.model) {
+                                self.three.scene.remove(self.three.model);
+                            }
+                            
+                            // Add the new model
+                            self.three.model = gltf.scene;
+                            self.three.scene.add(gltf.scene);
+                            
+                            // Apply scale
+                            gltf.scene.scale.set(
+                                self.config.model.scale,
+                                self.config.model.scale,
+                                self.config.model.scale
+                            );
+                            
+                            // Center the model
+                            const box = new THREE.Box3().setFromObject(gltf.scene);
+                            const center = box.getCenter(new THREE.Vector3());
+                            gltf.scene.position.x = -center.x;
+                            gltf.scene.position.y = -center.y;
+                            gltf.scene.position.z = -center.z;
+                            
+                            // Fit camera to model
+                            const size = box.getSize(new THREE.Vector3());
+                            const maxDim = Math.max(size.x, size.y, size.z);
+                            const fov = self.three.camera.fov * (Math.PI / 180);
+                            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+                            cameraZ *= 1.5;
+                            
+                            self.three.camera.position.z = cameraZ;
+                            
+                            // Enable shadows
+                            gltf.scene.traverse(function(node) {
+                                if (node.isMesh) {
+                                    node.castShadow = true;
+                                    node.receiveShadow = true;
+                                }
+                            });
+                            
+                            self.state.isModelLoaded = true;
+                            self.showNotification('Model Loaded', 'Your 3D model has been loaded successfully.');
+                        },
+                        function(xhr) {
+                            // Loading progress
+                            if (xhr.total > 0) {
+                                const percentComplete = (xhr.loaded / xhr.total) * 100;
+                                if (self.elements.loadingBar) {
+                                    self.elements.loadingBar.style.width = `${percentComplete}%`;
+                                }
+                            }
+                        },
+                        function(error) {
+                            console.error('Error loading model:', error);
+                            self.showNotification('Error', 'Failed to load 3D model. Using fallback model.', 'error');
+                            // Fallback model is already created
+                        }
+                    );
+                } else {
+                    console.warn('GLTFLoader not available. Using fallback model.');
+                    // Fallback model is already created
+                }
             } catch (error) {
                 console.error('Error in model loading process:', error);
-                // Create a minimal fallback here instead of calling another function
-                const group = new THREE.Group();
-                // Add minimal geometry...
-                this.three.model = group;
-                this.three.scene.add(group);
+                // Fallback model is already created
             }
         },
         
-        // Add this method to your SacredRosary object
+        // Create a fallback rosary model
         createFallbackModel: function() {
             // Create a simple rosary model
             const group = new THREE.Group();
@@ -569,13 +647,83 @@ document.addEventListener('DOMContentLoaded', function() {
             verticalBar.position.y = -0.2;
             group.add(verticalBar);
             
-            // Add the horizontal part of the cross
             const horizontalBar = new THREE.Mesh(
                 new THREE.BoxGeometry(0.3, 0.1, 0.05),
                 crossMaterial
             );
             horizontalBar.position.y = -0.05;
             group.add(horizontalBar);
+            
+            // Create beads
+            const beadGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+            const mainBeadMaterial = new THREE.MeshStandardMaterial({
+                color: this.config.theme.accentColor,
+                metalness: 0.1,
+                roughness: 0.7
+            });
+            
+            const smallBeadMaterial = new THREE.MeshStandardMaterial({
+                color: this.config.theme.textColor,
+                metalness: 0.1,
+                roughness: 0.7
+            });
+            
+            // Create a circle of beads
+            const radius = 0.8;
+            const totalBeads = 50;
+            
+            for (let i = 0; i < totalBeads; i++) {
+                const isLargeBead = i % 10 === 0;
+                const angle = (i / totalBeads) * Math.PI * 2;
+                
+                const bead = new THREE.Mesh(
+                    beadGeometry,
+                    isLargeBead ? mainBeadMaterial : smallBeadMaterial
+                );
+                
+                bead.position.x = Math.sin(angle) * radius;
+                bead.position.z = Math.cos(angle) * radius;
+                
+                // Make large beads slightly larger
+                if (isLargeBead) {
+                    bead.scale.set(1.3, 1.3, 1.3);
+                }
+                
+                group.add(bead);
+            }
+            
+            // Connect beads to form a chain
+            const chainMaterial = new THREE.LineBasicMaterial({ 
+                color: this.config.theme.accentColor 
+            });
+            
+            for (let i = 0; i < totalBeads; i++) {
+                const startAngle = (i / totalBeads) * Math.PI * 2;
+                const endAngle = ((i + 1) % totalBeads / totalBeads) * Math.PI * 2;
+                
+                const startX = Math.sin(startAngle) * radius;
+                const startZ = Math.cos(startAngle) * radius;
+                
+                const endX = Math.sin(endAngle) * radius;
+                const endZ = Math.cos(endAngle) * radius;
+                
+                const chainGeometry = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(startX, 0, startZ),
+                    new THREE.Vector3(endX, 0, endZ)
+                ]);
+                
+                const chain = new THREE.Line(chainGeometry, chainMaterial);
+                group.add(chain);
+            }
+            
+            // Connect first bead to the cross
+            const connectingGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, radius),
+                new THREE.Vector3(0, -0.2, 0)
+            ]);
+            
+            const connectingChain = new THREE.Line(connectingGeometry, chainMaterial);
+            group.add(connectingChain);
             
             // Add model to scene
             if (this.three.model) {
