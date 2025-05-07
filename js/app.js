@@ -548,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.three.model = group;
                 this.three.scene.add(group);
             }
-        }
+        },
         
         // Add this method to your SacredRosary object
         createFallbackModel: function() {
