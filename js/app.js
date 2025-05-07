@@ -527,172 +527,141 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         
-        // Load 3D model
-        loadModel: function() {
-            const self = this;
-            
-            // Create fallback model first as a backup
-            this.createFallbackModel();
-            
-            // Skip external model loading if no URL specified
-            if (!this.config.model.url) {
-                console.log('No model URL specified, using fallback model');
-                return;
-            }
-            
-            try {
-                // Check if GLTFLoader is available (THREE.GLTFLoader or global GLTFLoader)
-                if (typeof THREE.GLTFLoader === 'function' || typeof window.GLTFLoader === 'function') {
-                    // Use whatever loader is available
-                    const LoaderClass = THREE.GLTFLoader || window.GLTFLoader;
-                    const loader = new LoaderClass();
-                    
-                    // Use DRACOLoader if available
-                    if (typeof THREE.DRACOLoader === 'function' || typeof window.DRACOLoader === 'function') {
-                        const DracoLoaderClass = THREE.DRACOLoader || window.DRACOLoader;
-                        const dracoLoader = new DracoLoaderClass();
-                        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
-                        loader.setDRACOLoader(dracoLoader);
-                    }
-                    
-                    loader.load(
-                        this.config.model.url,
-                        function(gltf) {
-                            console.log("Model loaded successfully!");
-                            // Success handling code...
-                        },
-                        function(xhr) {
-                            console.log("Loading progress: " + (xhr.loaded / xhr.total * 100) + "%");
-                        },
-                        function(error) {
-                            console.error('Error loading model:', error);
-                            console.log('Model URL that failed:', self.config.model.url);
-                            self.showNotification('Error', 'Failed to load 3D model. Using fallback model.', 'error');
-                            // Make sure the fallback is used
-                            if (!self.state.isModelLoaded) {
-                                self.createFallbackModel();
-                            }
-                        }
-                    );
-                    
-                } else {
-                    console.warn('GLTFLoader not available. Using fallback model.');
-                    // Fallback model is already created
-                }
-            } catch (error) {
-                console.error('Error in model loading process:', error);
-                // Fallback model is already created
-            }
-        },
+        // Replace your loadModel function with this simpler version
+loadModel: function() {
+    const self = this;
+    
+    // Skip model loading if no URL specified
+    if (!this.config.model.url) {
+        console.log('No model URL specified. Please set a valid model URL in config.js');
+        this.showNotification('Model Configuration', 'Please specify a 3D model URL in config.js', 'warning');
+        return;
+    }
+    
+    // Create a simple placeholder while loading
+    const geometry = new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16);
+    const material = new THREE.MeshStandardMaterial({ 
+        color: this.config.theme.accentColor,
+        metalness: 0.5,
+        roughness: 0.5
+    });
+    const placeholderModel = new THREE.Mesh(geometry, material);
+    this.three.scene.add(placeholderModel);
+    this.three.model = placeholderModel;
+    
+    try {
+        // Import directly into the global scope to make GLTFLoader available
+        const scriptElement = document.createElement('script');
+        scriptElement.src = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js";
+        scriptElement.async = false; // We want this to load synchronously
         
-        // Create a fallback rosary model
-        createFallbackModel: function() {
-            // Create a simple rosary model
-            const group = new THREE.Group();
+        // Add event listeners for the script
+        scriptElement.onload = function() {
+            console.log("GLTFLoader loaded successfully");
             
-            // Create cross
-            const crossMaterial = new THREE.MeshStandardMaterial({
-                color: this.config.theme.accentColor,
-                metalness: 0.2,
-                roughness: 0.5
-            });
-            
-            const verticalBar = new THREE.Mesh(
-                new THREE.BoxGeometry(0.1, 0.6, 0.05),
-                crossMaterial
-            );
-            verticalBar.position.y = -0.2;
-            group.add(verticalBar);
-            
-            const horizontalBar = new THREE.Mesh(
-                new THREE.BoxGeometry(0.3, 0.1, 0.05),
-                crossMaterial
-            );
-            horizontalBar.position.y = -0.05;
-            group.add(horizontalBar);
-            
-            // Create beads
-            const beadGeometry = new THREE.SphereGeometry(0.05, 16, 16);
-            const mainBeadMaterial = new THREE.MeshStandardMaterial({
-                color: this.config.theme.accentColor,
-                metalness: 0.1,
-                roughness: 0.7
-            });
-            
-            const smallBeadMaterial = new THREE.MeshStandardMaterial({
-                color: this.config.theme.textColor,
-                metalness: 0.1,
-                roughness: 0.7
-            });
-            
-            // Create a circle of beads
-            const radius = 0.8;
-            const totalBeads = 50;
-            
-            for (let i = 0; i < totalBeads; i++) {
-                const isLargeBead = i % 10 === 0;
-                const angle = (i / totalBeads) * Math.PI * 2;
+            // Now that we know GLTFLoader is loaded, create and use it
+            if (typeof THREE.GLTFLoader === 'function') {
+                const loader = new THREE.GLTFLoader();
                 
-                const bead = new THREE.Mesh(
-                    beadGeometry,
-                    isLargeBead ? mainBeadMaterial : smallBeadMaterial
-                );
+                // Log the URL we're trying to load
+                console.log("Attempting to load model from:", self.config.model.url);
                 
-                bead.position.x = Math.sin(angle) * radius;
-                bead.position.z = Math.cos(angle) * radius;
+                // Create a XMLHttpRequest to check if the file exists first
+                const request = new XMLHttpRequest();
+                request.open('HEAD', self.config.model.url, true);
                 
-                // Make large beads slightly larger
-                if (isLargeBead) {
-                    bead.scale.set(1.3, 1.3, 1.3);
-                }
+                request.onreadystatechange = function() {
+                    if (request.readyState === 4) {
+                        if (request.status === 200) {
+                            // File exists, try to load it
+                            console.log("Model file exists, loading...");
+                            
+                            loader.load(
+                                self.config.model.url,
+                                function(gltf) {
+                                    console.log("Model loaded successfully!");
+                                    
+                                    // Remove placeholder
+                                    self.three.scene.remove(placeholderModel);
+                                    
+                                    // Add the new model
+                                    self.three.model = gltf.scene;
+                                    self.three.scene.add(gltf.scene);
+                                    
+                                    // Apply scale
+                                    gltf.scene.scale.set(
+                                        self.config.model.scale,
+                                        self.config.model.scale,
+                                        self.config.model.scale
+                                    );
+                                    
+                                    // Center the model
+                                    const box = new THREE.Box3().setFromObject(gltf.scene);
+                                    const center = box.getCenter(new THREE.Vector3());
+                                    gltf.scene.position.x = -center.x;
+                                    gltf.scene.position.y = -center.y;
+                                    gltf.scene.position.z = -center.z;
+                                    
+                                    // Enable shadows
+                                    gltf.scene.traverse(function(node) {
+                                        if (node.isMesh) {
+                                            node.castShadow = true;
+                                            node.receiveShadow = true;
+                                        }
+                                    });
+                                    
+                                    self.state.isModelLoaded = true;
+                                    self.showNotification('Success', 'Your 3D model has been loaded successfully.', 'success');
+                                },
+                                function(xhr) {
+                                    // Loading progress
+                                    if (xhr.total > 0) {
+                                        const percentComplete = (xhr.loaded / xhr.total) * 100;
+                                        console.log("Loading progress: " + percentComplete.toFixed(2) + "%");
+                                        if (self.elements.loadingBar) {
+                                            self.elements.loadingBar.style.width = `${percentComplete}%`;
+                                        }
+                                    }
+                                },
+                                function(error) {
+                                    console.error('Error loading model:', error);
+                                    self.showNotification('Error', 'Could not load the 3D model. Error: ' + error.message, 'error');
+                                }
+                            );
+                        } else {
+                            // File doesn't exist
+                            console.error("Model file doesn't exist at URL:", self.config.model.url);
+                            self.showNotification('File Not Found', 'The 3D model file could not be found at the specified URL. Check the path and try again.', 'error');
+                        }
+                    }
+                };
                 
-                group.add(bead);
+                request.onerror = function() {
+                    console.error("Error checking model file existence");
+                    self.showNotification('Network Error', 'Could not connect to the model URL. Check your internet connection and the URL.', 'error');
+                };
+                
+                request.send();
+            } else {
+                console.error("THREE.GLTFLoader is still not defined after loading the script");
+                self.showNotification('Error', 'Could not initialize the model loader. Try refreshing the page.', 'error');
             }
-            
-            // Connect beads to form a chain
-            const chainMaterial = new THREE.LineBasicMaterial({ 
-                color: this.config.theme.accentColor 
-            });
-            
-            for (let i = 0; i < totalBeads; i++) {
-                const startAngle = (i / totalBeads) * Math.PI * 2;
-                const endAngle = ((i + 1) % totalBeads / totalBeads) * Math.PI * 2;
-                
-                const startX = Math.sin(startAngle) * radius;
-                const startZ = Math.cos(startAngle) * radius;
-                
-                const endX = Math.sin(endAngle) * radius;
-                const endZ = Math.cos(endAngle) * radius;
-                
-                const chainGeometry = new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(startX, 0, startZ),
-                    new THREE.Vector3(endX, 0, endZ)
-                ]);
-                
-                const chain = new THREE.Line(chainGeometry, chainMaterial);
-                group.add(chain);
-            }
-            
-            // Connect first bead to the cross
-            const connectingGeometry = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(0, 0, radius),
-                new THREE.Vector3(0, -0.2, 0)
-            ]);
-            
-            const connectingChain = new THREE.Line(connectingGeometry, chainMaterial);
-            group.add(connectingChain);
-            
-            // Add model to scene
-            if (this.three.model) {
-                this.three.scene.remove(this.three.model);
-            }
-            
-            this.three.model = group;
-            this.three.scene.add(group);
-            
-            // Mark as loaded
-            this.state.isModelLoaded = true;
-        },
+        };
+        
+        scriptElement.onerror = function() {
+            console.error("Failed to load GLTFLoader script");
+            self.showNotification('Error', 'Failed to load required 3D model libraries. Check your internet connection.', 'error');
+        };
+        
+        // Add the script to the document
+        document.head.appendChild(scriptElement);
+        
+    } catch (error) {
+        console.error('Error in model loading process:', error);
+        this.showNotification('Error', 'An unexpected error occurred while loading the 3D model: ' + error.message, 'error');
+    }
+}
+        
         
         // Create the rosary sequence
         createRosarySequence: function() {
