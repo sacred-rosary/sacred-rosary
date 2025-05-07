@@ -559,65 +559,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.config.model.url,
                         function(gltf) {
                             console.log("Model loaded successfully!");
-                            
-                            // Remove fallback model
-                            if (self.three.model) {
-                                self.three.scene.remove(self.three.model);
-                            }
-                            
-                            // Add the new model
-                            self.three.model = gltf.scene;
-                            self.three.scene.add(gltf.scene);
-                            
-                            // Apply scale
-                            gltf.scene.scale.set(
-                                self.config.model.scale,
-                                self.config.model.scale,
-                                self.config.model.scale
-                            );
-                            
-                            // Center the model
-                            const box = new THREE.Box3().setFromObject(gltf.scene);
-                            const center = box.getCenter(new THREE.Vector3());
-                            gltf.scene.position.x = -center.x;
-                            gltf.scene.position.y = -center.y;
-                            gltf.scene.position.z = -center.z;
-                            
-                            // Fit camera to model
-                            const size = box.getSize(new THREE.Vector3());
-                            const maxDim = Math.max(size.x, size.y, size.z);
-                            const fov = self.three.camera.fov * (Math.PI / 180);
-                            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-                            cameraZ *= 1.5;
-                            
-                            self.three.camera.position.z = cameraZ;
-                            
-                            // Enable shadows
-                            gltf.scene.traverse(function(node) {
-                                if (node.isMesh) {
-                                    node.castShadow = true;
-                                    node.receiveShadow = true;
-                                }
-                            });
-                            
-                            self.state.isModelLoaded = true;
-                            self.showNotification('Model Loaded', 'Your 3D model has been loaded successfully.');
+                            // Success handling code...
                         },
                         function(xhr) {
-                            // Loading progress
-                            if (xhr.total > 0) {
-                                const percentComplete = (xhr.loaded / xhr.total) * 100;
-                                if (self.elements.loadingBar) {
-                                    self.elements.loadingBar.style.width = `${percentComplete}%`;
-                                }
-                            }
+                            console.log("Loading progress: " + (xhr.loaded / xhr.total * 100) + "%");
                         },
                         function(error) {
                             console.error('Error loading model:', error);
+                            console.log('Model URL that failed:', self.config.model.url);
                             self.showNotification('Error', 'Failed to load 3D model. Using fallback model.', 'error');
-                            // Fallback model is already created
+                            // Make sure the fallback is used
+                            if (!self.state.isModelLoaded) {
+                                self.createFallbackModel();
+                            }
                         }
                     );
+                    
                 } else {
                     console.warn('GLTFLoader not available. Using fallback model.');
                     // Fallback model is already created
