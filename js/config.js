@@ -67,7 +67,7 @@ const ROSARY_CONFIG = {
     // 3D Model Settings
     model: {
         // Change this URL to your GitHub-hosted model
-        url: "https://raw.githubusercontent.com/yourusername/sacred-rosary/main/assets/models/rosary.glb",
+        url: "https://raw.githubusercontent.com/sacred-rosary/sacred-rosary/main/assets/models/rosary.glb",
         scale: 1.0,
         autoRotate: false, // Set to false as requested
         rotationSpeed: 0.001, // Very slow for subtle movement
