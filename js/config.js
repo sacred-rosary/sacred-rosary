@@ -67,7 +67,7 @@ const ROSARY_CONFIG = {
     // 3D Model Settings
     model: {
         // Use a reliable model from Three.js examples
-        url: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/models/gltf/cross.glb",
+        url: "https://raw.githubusercontent.com/sacred-rosary/sacred-rosary/refs/heads/main/assets/models/rosary.glb",
         
         // Scale - adjust as needed for your model
         scale: 2.0,
