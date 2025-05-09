@@ -1,5 +1,27 @@
 // Sacred Rosary - Main Application
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if Three.js is loaded
+    if (!window.THREE) {
+        console.error("THREE.js not loaded! Please check your internet connection and try again.");
+        
+        // Show error to user and reveal app anyway after a delay
+        const loadingOverlay = document.querySelector('.loading-overlay');
+        const loadingText = document.querySelector('.loading-text');
+        
+        if (loadingText) {
+            loadingText.textContent = "Error loading 3D libraries. You'll still be able to pray the rosary.";
+        }
+        
+        setTimeout(() => {
+            if (loadingOverlay) {
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 800);
+            }
+        }, 3000);
+    }
+    
     // Main application object
     const SacredRosary = {
         // Configuration (loaded from config.js)
@@ -43,6 +65,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initialize the application
         init: function() {
+            console.log("Initializing Sacred Rosary Application");
+            
             // Register DOM elements
             this.registerDOMElements();
             
@@ -290,9 +314,46 @@ document.addEventListener('DOMContentLoaded', function() {
             // For now we're keeping the default English labels
         },
         
+        // Test if a URL is accessible
+        testModelURL: function(url) {
+            console.log("Testing URL accessibility:", url);
+            
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                
+                xhr.open("HEAD", url, true);
+                
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        console.log("URL is accessible:", url);
+                        resolve(true);
+                    } else {
+                        console.warn("URL is not accessible:", url, "Status:", xhr.status);
+                        resolve(false);
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error("Error testing URL:", url);
+                    resolve(false);
+                };
+                
+                xhr.send();
+            });
+        },
+        
         // Initialize the 3D scene
         initializeScene: function() {
             try {
+                console.log("Initializing 3D scene");
+                
+                // First check if THREE is available
+                if (!window.THREE) {
+                    console.error("THREE is not defined - cannot initialize scene");
+                    this.showNotification("Error", "3D library not loaded. Try refreshing the page.", "error");
+                    return;
+                }
+                
                 // Create scene
                 this.three.scene = new THREE.Scene();
                 this.three.scene.background = new THREE.Color(this.config.theme.backgroundColor);
@@ -308,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Set initial camera position
                 this.three.camera.position.set(0, 0, 5);
                 
-                // Create renderer
+                // Create renderer with alpha for transparency
                 this.three.renderer = new THREE.WebGLRenderer({
                     canvas: this.elements.modelCanvas,
                     antialias: true,
@@ -329,11 +390,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Create animation clock
                 this.three.clock = new THREE.Clock();
                 
+                console.log("3D scene initialized successfully");
+                
+                // Test model URL before attempting to load
+                if (this.config.model && this.config.model.url) {
+                    this.testModelURL(this.config.model.url).then(isAccessible => {
+                        if (isAccessible) {
+                            // URL is valid, proceed with loading
+                            this.loadModel();
+                        } else {
+                            // URL is not accessible, show notification
+                            this.showNotification("Model URL Error", 
+                                "The 3D model URL is not accessible. Please check your config.js file.", 
+                                "error");
+                            
+                            // Create placeholder geometry
+                            const geometry = new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16);
+                            const material = new THREE.MeshStandardMaterial({ 
+                                color: this.config.theme.accentColor,
+                                metalness: 0.5,
+                                roughness: 0.5
+                            });
+                            const tempModel = new THREE.Mesh(geometry, material);
+                            this.three.scene.add(tempModel);
+                            this.three.model = tempModel;
+                        }
+                    });
+                } else {
+                    console.warn("No model URL configured.");
+                    // Create placeholder since no model URL was provided
+                    const geometry = new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16);
+                    const material = new THREE.MeshStandardMaterial({ 
+                        color: this.config.theme.accentColor,
+                        metalness: 0.5,
+                        roughness: 0.5
+                    });
+                    const tempModel = new THREE.Mesh(geometry, material);
+                    this.three.scene.add(tempModel);
+                    this.three.model = tempModel;
+                }
+                
                 // Start the render loop
                 this.animate();
+                
             } catch (error) {
                 console.error('Error initializing 3D scene:', error);
-                this.showNotification('Error', 'Could not initialize 3D scene. Using fallback display.', 'error');
+                this.showNotification('Error', 'Could not initialize 3D scene: ' + error.message, 'error');
                 
                 // Hide the loading overlay anyway to prevent getting stuck
                 setTimeout(() => {
@@ -452,19 +554,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.elements.loadingOverlay.style.display = 'none';
                 }, this.config.theme.animations.transitionSpeed);
                 
-                // Create fallback model if needed
-                if (!this.state.isModelLoaded) {
-                    this.createFallbackModel();
-                }
-                
                 this.state.isAppInitialized = true;
             }, 15000);
             
             // Set up audio
             this.setupAudio();
-            
-            // Load 3D model
-            this.loadModel();
             
             // Hide loading overlay after a short delay (or when model is loaded)
             setTimeout(() => {
@@ -527,141 +621,132 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         
-        // Replace your loadModel function with this simpler version
-loadModel: function() {
-    const self = this;
-    
-    // Skip model loading if no URL specified
-    if (!this.config.model.url) {
-        console.log('No model URL specified. Please set a valid model URL in config.js');
-        this.showNotification('Model Configuration', 'Please specify a 3D model URL in config.js', 'warning');
-        return;
-    }
-    
-    // Create a simple placeholder while loading
-    const geometry = new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16);
-    const material = new THREE.MeshStandardMaterial({ 
-        color: this.config.theme.accentColor,
-        metalness: 0.5,
-        roughness: 0.5
-    });
-    const placeholderModel = new THREE.Mesh(geometry, material);
-    this.three.scene.add(placeholderModel);
-    this.three.model = placeholderModel;
-    
-    try {
-        // Import directly into the global scope to make GLTFLoader available
-        const scriptElement = document.createElement('script');
-        scriptElement.src = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js";
-        scriptElement.async = false; // We want this to load synchronously
-        
-        // Add event listeners for the script
-        scriptElement.onload = function() {
-            console.log("GLTFLoader loaded successfully");
+        // Load 3D model
+        loadModel: function() {
+            const self = this;
             
-            // Now that we know GLTFLoader is loaded, create and use it
-            if (typeof THREE.GLTFLoader === 'function') {
-                const loader = new THREE.GLTFLoader();
-                
-                // Log the URL we're trying to load
-                console.log("Attempting to load model from:", self.config.model.url);
-                
-                // Create a XMLHttpRequest to check if the file exists first
-                const request = new XMLHttpRequest();
-                request.open('HEAD', self.config.model.url, true);
-                
-                request.onreadystatechange = function() {
-                    if (request.readyState === 4) {
-                        if (request.status === 200) {
-                            // File exists, try to load it
-                            console.log("Model file exists, loading...");
-                            
-                            loader.load(
-                                self.config.model.url,
-                                function(gltf) {
-                                    console.log("Model loaded successfully!");
-                                    
-                                    // Remove placeholder
-                                    self.three.scene.remove(placeholderModel);
-                                    
-                                    // Add the new model
-                                    self.three.model = gltf.scene;
-                                    self.three.scene.add(gltf.scene);
-                                    
-                                    // Apply scale
-                                    gltf.scene.scale.set(
-                                        self.config.model.scale,
-                                        self.config.model.scale,
-                                        self.config.model.scale
-                                    );
-                                    
-                                    // Center the model
-                                    const box = new THREE.Box3().setFromObject(gltf.scene);
-                                    const center = box.getCenter(new THREE.Vector3());
-                                    gltf.scene.position.x = -center.x;
-                                    gltf.scene.position.y = -center.y;
-                                    gltf.scene.position.z = -center.z;
-                                    
-                                    // Enable shadows
-                                    gltf.scene.traverse(function(node) {
-                                        if (node.isMesh) {
-                                            node.castShadow = true;
-                                            node.receiveShadow = true;
-                                        }
-                                    });
-                                    
-                                    self.state.isModelLoaded = true;
-                                    self.showNotification('Success', 'Your 3D model has been loaded successfully.', 'success');
-                                },
-                                function(xhr) {
-                                    // Loading progress
-                                    if (xhr.total > 0) {
-                                        const percentComplete = (xhr.loaded / xhr.total) * 100;
-                                        console.log("Loading progress: " + percentComplete.toFixed(2) + "%");
-                                        if (self.elements.loadingBar) {
-                                            self.elements.loadingBar.style.width = `${percentComplete}%`;
-                                        }
-                                    }
-                                },
-                                function(error) {
-                                    console.error('Error loading model:', error);
-                                    self.showNotification('Error', 'Could not load the 3D model. Error: ' + error.message, 'error');
-                                }
-                            );
-                        } else {
-                            // File doesn't exist
-                            console.error("Model file doesn't exist at URL:", self.config.model.url);
-                            self.showNotification('File Not Found', 'The 3D model file could not be found at the specified URL. Check the path and try again.', 'error');
-                        }
-                    }
-                };
-                
-                request.onerror = function() {
-                    console.error("Error checking model file existence");
-                    self.showNotification('Network Error', 'Could not connect to the model URL. Check your internet connection and the URL.', 'error');
-                };
-                
-                request.send();
-            } else {
-                console.error("THREE.GLTFLoader is still not defined after loading the script");
-                self.showNotification('Error', 'Could not initialize the model loader. Try refreshing the page.', 'error');
+            // Create a simple temporary object while loading
+            const geometry = new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: this.config.theme.accentColor,
+                metalness: 0.5,
+                roughness: 0.5
+            });
+            const tempModel = new THREE.Mesh(geometry, material);
+            this.three.scene.add(tempModel);
+            this.three.model = tempModel;
+            
+            // Log Three.js version for debugging
+            console.log('Using Three.js version:', THREE.REVISION);
+            
+            // Skip if no URL provided
+            if (!this.config.model.url) {
+                console.log('No model URL specified. Using placeholder model.');
+                this.showNotification('Configuration', 'No model URL specified.');
+                return;
             }
-        };
-        
-        scriptElement.onerror = function() {
-            console.error("Failed to load GLTFLoader script");
-            self.showNotification('Error', 'Failed to load required 3D model libraries. Check your internet connection.', 'error');
-        };
-        
-        // Add the script to the document
-        document.head.appendChild(scriptElement);
-        
-    } catch (error) {
-        console.error('Error in model loading process:', error);
-        this.showNotification('Error', 'An unexpected error occurred while loading the 3D model: ' + error.message, 'error');
-    }
-},
-        
+            
+            try {
+                // Create a loader with proper error handling
+                if (typeof GLTFLoader === 'function') {
+                    const loader = new GLTFLoader();
+                    
+                    // Set up DRACOLoader for compressed models
+                    if (typeof DRACOLoader === 'function') {
+                        const dracoLoader = new DRACOLoader();
+                        // Use newest CDN path for DRACO decoder
+                        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+                        dracoLoader.setDecoderConfig({ type: 'js' }); // Use JS decoder for compatibility
+                        loader.setDRACOLoader(dracoLoader);
+                        console.log('DRACOLoader initialized');
+                    } else {
+                        console.log('DRACOLoader not available, continuing without compression support');
+                    }
+                    
+                    // Log what we're attempting to load
+                    console.log('Loading model from:', this.config.model.url);
+                    
+                    // Show loading notification
+                    this.showNotification('Loading', 'Loading 3D model...');
+                    
+                    // Load the model
+                    loader.load(
+                        // Resource URL
+                        this.config.model.url,
+                        
+                        // Success callback
+                        (gltf) => {
+                            console.log('Model loaded successfully!', gltf);
+                            
+                            // Remove the placeholder model
+                            this.three.scene.remove(tempModel);
+                            
+                            // Add the loaded model to the scene
+                            this.three.model = gltf.scene;
+                            this.three.scene.add(gltf.scene);
+                            
+                            // Apply scale
+                            gltf.scene.scale.set(
+                                this.config.model.scale,
+                                this.config.model.scale,
+                                this.config.model.scale
+                            );
+                            
+                            // Center the model
+                            const box = new THREE.Box3().setFromObject(gltf.scene);
+                            const center = box.getCenter(new THREE.Vector3());
+                            gltf.scene.position.x = -center.x;
+                            gltf.scene.position.y = -center.y;
+                            gltf.scene.position.z = -center.z;
+                            
+                            // Enable shadows
+                            gltf.scene.traverse((node) => {
+                                if (node.isMesh) {
+                                    node.castShadow = true;
+                                    node.receiveShadow = true;
+                                    
+                                    // Improve material quality
+                                    if (node.material) {
+                                        node.material.metalness = 0.5;
+                                        node.material.roughness = 0.5;
+                                        node.material.needsUpdate = true;
+                                    }
+                                }
+                            });
+                            
+                            this.state.isModelLoaded = true;
+                            this.showNotification('Success', 'Model loaded successfully!');
+                        },
+                        
+                        // Progress callback
+                        (xhr) => {
+                            if (xhr.lengthComputable) {
+                                const percentComplete = (xhr.loaded / xhr.total) * 100;
+                                console.log('Model loading: ' + Math.round(percentComplete) + '% complete');
+                                if (this.elements.loadingBar) {
+                                    this.elements.loadingBar.style.width = `${percentComplete}%`;
+                                }
+                            }
+                        },
+                        
+                        // Error callback
+                        (error) => {
+                            console.error('Error loading model:', error);
+                            this.showNotification('Error', 'Failed to load 3D model: ' + error.message, 'error');
+                            
+                            // Keep the placeholder model visible since loading failed
+                            console.log('Using placeholder model instead');
+                        }
+                    );
+                } else {
+                    console.error('GLTFLoader not available. Make sure you have the proper imports.');
+                    this.showNotification('Error', 'Model loader not available.', 'error');
+                }
+            } catch (error) {
+                console.error('Error in model loading process:', error);
+                this.showNotification('Error', 'Model loading error: ' + error.message, 'error');
+            }
+        },
         
         // Create the rosary sequence
         createRosarySequence: function() {
