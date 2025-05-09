@@ -17,7 +17,7 @@ const ROSARY_CONFIG = {
         shadowColor: "rgba(0, 0, 0, 0.6)",
         glowColor: "rgba(255, 200, 100, 0.4)", // Candlelight glow
         
-        // Liturgical Season Colors (you can customize per season)
+        // Liturgical Season Colors
         liturgicalColors: {
             ordinary: {
                 primaryColor: "#8B6C42",
@@ -66,19 +66,31 @@ const ROSARY_CONFIG = {
     
     // 3D Model Settings
     model: {
-        // Change this URL to your GitHub-hosted model
-        url: "https://raw.githubusercontent.com/sacred-rosary/sacred-rosary/main/assets/models/rosary.glb",
-        scale: 1.0,
-        autoRotate: false, // Set to false as requested
-        rotationSpeed: 0.001, // Very slow for subtle movement
+        // Use a reliable model from Three.js examples
+        url: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/models/gltf/cross.glb",
+        
+        // Scale - adjust as needed for your model
+        scale: 2.0,
+        
+        // No auto-rotation or user controls as requested
+        autoRotate: false,
+        
+        // Controls how fast the model moves subtly (breathing effect)
+        rotationSpeed: 0.001,
+        
+        // Ambient lighting settings
         ambient: {
             intensity: 0.7,
             color: "#FFF0D9" // Warm light
         },
+        
+        // Candle lighting settings
         candle: {
             intensity: 1.2,
             color: "#FFCC88" // Candle light
         },
+        
+        // Enable shadows for realism
         shadow: true,
     },
     
@@ -101,7 +113,7 @@ const ROSARY_CONFIG = {
     
     // Prayer Settings
     prayer: {
-        autoAdvanceDelay: 1000, // ms to wait after audio finishes
+        autoAdvanceDelay: 1000, // ms to wait after audio finishes before advancing
         meditationDurations: {
             none: 0,
             short: 5000,
@@ -131,9 +143,6 @@ const ROSARY_CONFIG = {
         // 3 = Lent (purple)
         // 4 = Easter (white/gold)
         // 5 = Feast days (red)
-        
-        // This is a simplified calendar - in a full app you'd want to
-        // calculate these dates based on the current year
         
         // Advent (approximate - 4 Sundays before Christmas)
         "11-27": 1, "11-28": 1, "11-29": 1, "11-30": 1,
