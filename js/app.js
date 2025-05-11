@@ -621,132 +621,138 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         
-        // Load 3D model
         loadModel: function() {
-            const self = this;
+    const self = this;
+    
+    console.log('Loading model from:', this.config.model.url);
+    
+    // Create a simple fallback object while loading
+    const geometry = new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16);
+    const material = new THREE.MeshStandardMaterial({ 
+        color: this.config.theme.accentColor,
+        metalness: 0.5,
+        roughness: 0.5
+    });
+    const tempModel = new THREE.Mesh(geometry, material);
+    this.three.scene.add(tempModel);
+    this.three.model = tempModel;
+    
+    // Skip if no URL provided
+    if (!this.config.model.url) {
+        console.log('No model URL specified. Using placeholder model.');
+        this.showNotification('Configuration', 'No model URL specified.');
+        return;
+    }
+    
+    try {
+        const loader = new GLTFLoader();
+        
+        // Set up DRACOLoader for compressed models
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        dracoLoader.setDecoderConfig({ type: 'js' });
+        loader.setDRACOLoader(dracoLoader);
+        
+        // Add better error handling
+        loader.load(
+            this.config.model.url,
             
-            // Create a simple temporary object while loading
-            const geometry = new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16);
-            const material = new THREE.MeshStandardMaterial({ 
-                color: this.config.theme.accentColor,
-                metalness: 0.5,
-                roughness: 0.5
-            });
-            const tempModel = new THREE.Mesh(geometry, material);
-            this.three.scene.add(tempModel);
-            this.three.model = tempModel;
-            
-            // Log Three.js version for debugging
-            console.log('Using Three.js version:', THREE.REVISION);
-            
-            // Skip if no URL provided
-            if (!this.config.model.url) {
-                console.log('No model URL specified. Using placeholder model.');
-                this.showNotification('Configuration', 'No model URL specified.');
-                return;
-            }
-            
-            try {
-                // Create a loader with proper error handling
-                if (typeof GLTFLoader === 'function') {
-                    const loader = new GLTFLoader();
-                    
-                    // Set up DRACOLoader for compressed models
-                    if (typeof DRACOLoader === 'function') {
-                        const dracoLoader = new DRACOLoader();
-                        // Use newest CDN path for DRACO decoder
-                        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-                        dracoLoader.setDecoderConfig({ type: 'js' }); // Use JS decoder for compatibility
-                        loader.setDRACOLoader(dracoLoader);
-                        console.log('DRACOLoader initialized');
-                    } else {
-                        console.log('DRACOLoader not available, continuing without compression support');
-                    }
-                    
-                    // Log what we're attempting to load
-                    console.log('Loading model from:', this.config.model.url);
-                    
-                    // Show loading notification
-                    this.showNotification('Loading', 'Loading 3D model...');
-                    
-                    // Load the model
-                    loader.load(
-                        // Resource URL
-                        this.config.model.url,
+            // Success callback
+            (gltf) => {
+                console.log('Model loaded successfully!', gltf);
+                
+                // Remove the placeholder model
+                this.three.scene.remove(tempModel);
+                
+                // Add the loaded model to the scene
+                this.three.model = gltf.scene;
+                this.three.scene.add(gltf.scene);
+                
+                // Apply scale
+                gltf.scene.scale.set(
+                    this.config.model.scale,
+                    this.config.model.scale,
+                    this.config.model.scale
+                );
+                
+                // Center the model
+                const box = new THREE.Box3().setFromObject(gltf.scene);
+                const center = box.getCenter(new THREE.Vector3());
+                gltf.scene.position.x = -center.x;
+                gltf.scene.position.y = -center.y;
+                gltf.scene.position.z = -center.z;
+                
+                // Enable shadows and improve materials
+                gltf.scene.traverse((node) => {
+                    if (node.isMesh) {
+                        node.castShadow = true;
+                        node.receiveShadow = true;
                         
-                        // Success callback
-                        (gltf) => {
-                            console.log('Model loaded successfully!', gltf);
+                        if (node.material) {
+                            // Enhance materials for religious aesthetic
+                            node.material.metalness = 0.3;
+                            node.material.roughness = 0.7;
                             
-                            // Remove the placeholder model
-                            this.three.scene.remove(tempModel);
-                            
-                            // Add the loaded model to the scene
-                            this.three.model = gltf.scene;
-                            this.three.scene.add(gltf.scene);
-                            
-                            // Apply scale
-                            gltf.scene.scale.set(
-                                this.config.model.scale,
-                                this.config.model.scale,
-                                this.config.model.scale
-                            );
-                            
-                            // Center the model
-                            const box = new THREE.Box3().setFromObject(gltf.scene);
-                            const center = box.getCenter(new THREE.Vector3());
-                            gltf.scene.position.x = -center.x;
-                            gltf.scene.position.y = -center.y;
-                            gltf.scene.position.z = -center.z;
-                            
-                            // Enable shadows
-                            gltf.scene.traverse((node) => {
-                                if (node.isMesh) {
-                                    node.castShadow = true;
-                                    node.receiveShadow = true;
-                                    
-                                    // Improve material quality
-                                    if (node.material) {
-                                        node.material.metalness = 0.5;
-                                        node.material.roughness = 0.5;
-                                        node.material.needsUpdate = true;
-                                    }
-                                }
-                            });
-                            
-                            this.state.isModelLoaded = true;
-                            this.showNotification('Success', 'Model loaded successfully!');
-                        },
-                        
-                        // Progress callback
-                        (xhr) => {
-                            if (xhr.lengthComputable) {
-                                const percentComplete = (xhr.loaded / xhr.total) * 100;
-                                console.log('Model loading: ' + Math.round(percentComplete) + '% complete');
-                                if (this.elements.loadingBar) {
-                                    this.elements.loadingBar.style.width = `${percentComplete}%`;
-                                }
+                            // Add emissive color for beads
+                            if (node.name.toLowerCase().includes('bead')) {
+                                node.material.emissive = new THREE.Color(this.config.theme.accentColor);
+                                node.material.emissiveIntensity = 0.1;
                             }
-                        },
-                        
-                        // Error callback
-                        (error) => {
-                            console.error('Error loading model:', error);
-                            this.showNotification('Error', 'Failed to load 3D model: ' + error.message, 'error');
                             
-                            // Keep the placeholder model visible since loading failed
-                            console.log('Using placeholder model instead');
+                            node.material.needsUpdate = true;
                         }
-                    );
-                } else {
-                    console.error('GLTFLoader not available. Make sure you have the proper imports.');
-                    this.showNotification('Error', 'Model loader not available.', 'error');
+                    }
+                });
+                
+                this.state.isModelLoaded = true;
+                this.showNotification('Success', 'Sacred Rosary model loaded successfully!');
+                
+                // Animate the model for a nice reveal
+                gsap.from(gltf.scene.scale, {
+                    x: 0, y: 0, z: 0,
+                    duration: 1.5,
+                    ease: "back.out(1.7)"
+                });
+            },
+            
+            // Progress callback
+            (xhr) => {
+                if (xhr.lengthComputable) {
+                    const percentComplete = (xhr.loaded / xhr.total) * 100;
+                    console.log('Model loading: ' + Math.round(percentComplete) + '% complete');
+                    if (this.elements.loadingBar) {
+                        this.elements.loadingBar.style.width = `${percentComplete}%`;
+                    }
                 }
-            } catch (error) {
-                console.error('Error in model loading process:', error);
-                this.showNotification('Error', 'Model loading error: ' + error.message, 'error');
+            },
+            
+            // Error callback
+            (error) => {
+                console.error('Error loading model:', error);
+                
+                // Provide specific error messages
+                let errorMessage = 'Failed to load the Sacred Rosary model.';
+                
+                if (error.message.includes('CORS')) {
+                    errorMessage += ' This might be a CORS issue.';
+                } else if (error.message.includes('404')) {
+                    errorMessage += ' The model file was not found.';
+                } else if (error.message.includes('Failed to parse GLB')) {
+                    errorMessage += ' The model file might be corrupted.';
+                }
+                
+                this.showNotification('Error', errorMessage, 'error');
+                
+                // Keep the placeholder model visible since loading failed
+                console.log('Using placeholder model instead');
+                this.state.isModelLoaded = false;
             }
-        },
+        );
+    } catch (error) {
+        console.error('Error in model loading process:', error);
+        this.showNotification('Error', 'Model loading error: ' + error.message, 'error');
+    }
+}
         
         // Create the rosary sequence
         createRosarySequence: function() {
