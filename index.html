@@ -25,26 +25,17 @@
     <script src="js/prayers-en.js"></script>
     <script src="js/prayers-es.js"></script>
     
-    <!-- Update this section in your index.html file -->
-<script type="module">
-    // Import latest Three.js and related modules with full URLs
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js';
-    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
-    import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/DRACOLoader.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js';
-    
-    // Make these available globally
-    window.THREE = THREE;
-    window.GLTFLoader = GLTFLoader;
-    window.DRACOLoader = DRACOLoader;
-    window.OrbitControls = OrbitControls;
-    
-    // Log version info
-    console.log('Loaded Three.js version:', THREE.REVISION);
-    
-    // Dispatch an event when modules are loaded so app.js can run
+    <!-- Replace the ES module imports with these UMD script tags -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/DRACOLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+    // This script will run after the above scripts are loaded
     window.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM content loaded - Three.js modules ready');
+        console.log('DOM content loaded - Three.js libraries ready');
+        console.log('Loaded Three.js version:', THREE.REVISION);
         
         // Create and load app.js script
         const appScript = document.createElement('script');
