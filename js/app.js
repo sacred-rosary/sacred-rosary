@@ -367,7 +367,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
                 
                 // Set initial camera position
-                this.three.camera.position.set(0, 0, 5);
+                this.three.camera.position.set(0, 2, 5);
+                this.three.camera.lookAt(0, 0, 0);
                 
                 // Create renderer with alpha for transparency
                 this.three.renderer = new THREE.WebGLRenderer({
@@ -447,46 +448,59 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         
-        // Set up the lights
         setupLights: function() {
-            // Add ambient light
-            const ambientLight = new THREE.AmbientLight(
-                this.config.model.ambient.color, 
-                this.config.model.ambient.intensity
-            );
-            this.three.scene.add(ambientLight);
-            this.three.lights.ambient = ambientLight;
-            
-            // Add directional light (main light)
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
-            directionalLight.position.set(1, 1, 1);
-            this.three.scene.add(directionalLight);
-            this.three.lights.main = directionalLight;
-            
-            // Add candle-like point lights
-            const candleLight1 = new THREE.PointLight(
-                this.config.model.candle.color, 
-                this.config.model.candle.intensity, 
-                10, 
-                2
-            );
-            candleLight1.position.set(2, 1, 2);
-            this.three.scene.add(candleLight1);
-            this.three.lights.candle1 = candleLight1;
-            
-            const candleLight2 = new THREE.PointLight(
-                this.config.model.candle.color, 
-                this.config.model.candle.intensity, 
-                10, 
-                2
-            );
-            candleLight2.position.set(-2, 1, -2);
-            this.three.scene.add(candleLight2);
-            this.three.lights.candle2 = candleLight2;
-            
-            // Animate candle lights for flickering effect
-            this.animateCandleLights();
-        },
+    // Add ambient light with religious ambiance
+    const ambientLight = new THREE.AmbientLight(
+        this.config.model.ambient.color, 
+        this.config.model.ambient.intensity
+    );
+    this.three.scene.add(ambientLight);
+    this.three.lights.ambient = ambientLight;
+    
+    // Add warm directional light from above (like sunlight through stained glass)
+    const directionalLight = new THREE.DirectionalLight(0xFFF7E6, 0.8);
+    directionalLight.position.set(5, 10, 5);
+    directionalLight.castShadow = true;
+    
+    // Configure shadow properties
+    directionalLight.shadow.camera.near = 0.1;
+    directionalLight.shadow.camera.far = 50;
+    directionalLight.shadow.camera.left = -10;
+    directionalLight.shadow.camera.right = 10;
+    directionalLight.shadow.camera.top = 10;
+    directionalLight.shadow.camera.bottom = -10;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    
+    this.three.scene.add(directionalLight);
+    this.three.lights.main = directionalLight;
+    
+    // Add warm point lights (like candles)
+    const createCandleLight = (x, y, z) => {
+        const light = new THREE.PointLight(
+            this.config.model.candle.color, 
+            this.config.model.candle.intensity, 
+            15, 
+            1.5
+        );
+        light.position.set(x, y, z);
+        light.castShadow = true;
+        this.three.scene.add(light);
+        return light;
+    };
+    
+    this.three.lights.candle1 = createCandleLight(3, 2, 3);
+    this.three.lights.candle2 = createCandleLight(-3, 2, -3);
+    
+    // Add rim light for dramatic effect
+    const rimLight = new THREE.DirectionalLight(0xFFE5B4, 0.3);
+    rimLight.position.set(-5, 0, -5);
+    this.three.scene.add(rimLight);
+    this.three.lights.rim = rimLight;
+    
+    // Animate candle lights for flickering effect
+    this.animateCandleLights();
+},
         
         // Animate candle lights for flickering effect
         animateCandleLights: function() {
