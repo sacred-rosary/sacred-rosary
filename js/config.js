@@ -66,25 +66,24 @@ const ROSARY_CONFIG = {
     
     // 3D Model Settings
     model: {
-        // Use a reliable model from Three.js examples
+        // Your model URL - make sure this is correct and accessible
         url: "https://raw.githubusercontent.com/sacred-rosary/sacred-rosary/refs/heads/main/assets/models/rosary.glb",
         
-        // Scale - adjust as needed for your model
+        // Adjust scale as needed for your model
         scale: 2.0,
         
-        // No auto-rotation or user controls as requested
+        // No auto-rotation as requested
         autoRotate: false,
         
-        // Controls how fast the model moves subtly (breathing effect)
+        // Controls how fast the model moves subtly
         rotationSpeed: 0.001,
         
-        // Ambient lighting settings
+        // Lighting settings
         ambient: {
             intensity: 0.7,
             color: "#FFF0D9" // Warm light
         },
         
-        // Candle lighting settings
         candle: {
             intensity: 1.2,
             color: "#FFCC88" // Candle light
