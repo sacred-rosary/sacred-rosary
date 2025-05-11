@@ -10,8 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPrayerIndex: 0,
             currentMysteryType: 'joyful',
             isPlaying: false,
-            isAutoAdvanceEnabled: false,
-            isModelLoaded: false,
+            isAutoAdvanceEnabled: true, // Set to true to enable auto-advance
             isAppInitialized: false,
             activeLanguage: 'en',
             liturgicalSeason: 'ordinary',
@@ -24,16 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // DOM Elements
         elements: {},
         
-        // Three.js objects
-        three: {
-            scene: null,
-            camera: null,
-            renderer: null,
-            model: null,
-            lights: {},
-            clock: null,
-        },
-        
         // Audio objects
         audio: {
             backgroundMusic: null,
@@ -44,30 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize the application
         init: function() {
             console.log("Initializing Sacred Rosary Application");
-            
-            // Check if Three.js is loaded
-            if (!window.THREE) {
-                console.error("THREE.js not loaded! Please check your internet connection and try again.");
-                
-                // Show error to user and reveal app anyway after a delay
-                const loadingOverlay = document.querySelector('.loading-overlay');
-                const loadingText = document.querySelector('.loading-text');
-                
-                if (loadingText) {
-                    loadingText.textContent = "Error loading 3D libraries. You'll still be able to pray the rosary.";
-                }
-                
-                setTimeout(() => {
-                    if (loadingOverlay) {
-                        loadingOverlay.style.opacity = '0';
-                        setTimeout(() => {
-                            loadingOverlay.style.display = 'none';
-                        }, 800);
-                    }
-                }, 3000);
-                
-                return;
-            }
             
             // Register DOM elements
             this.registerDOMElements();
@@ -83,9 +48,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Set up all language translations
             this.setLanguage(this.config.language.default);
-            
-            // Initialize the 3D scene
-            this.initializeScene();
             
             // Start loading assets
             this.loadAssets();
@@ -104,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.elements.landingPage = document.querySelector('.landing-page');
             this.elements.mainContent = document.querySelector('.main-content');
             this.elements.prayerSection = document.querySelector('.prayer-section');
-            this.elements.modelSection = document.querySelector('.model-section');
+            this.elements.visualSection = document.querySelector('.visual-section');
             
             // Background effects
             this.elements.backgroundEffects = document.querySelector('.background-effects');
@@ -128,8 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.elements.playBtn = document.querySelector('.play-btn');
             this.elements.nextBtn = document.querySelector('.next-btn');
             
-            // Model elements
-            this.elements.modelCanvas = document.getElementById('model-canvas');
+            // Mystery info
             this.elements.mysteryInfo = document.querySelector('.mystery-info');
             
             // Landing page elements
@@ -142,6 +103,9 @@ document.addEventListener('DOMContentLoaded', function() {
             this.elements.notificationTitle = document.querySelector('.notification-title');
             this.elements.notificationMessage = document.querySelector('.notification-message');
             this.elements.notificationClose = document.querySelector('.notification-close');
+            
+            // Audio controls
+            this.elements.musicToggle = document.getElementById('music-toggle');
         },
         
         // Apply theme from config
@@ -218,13 +182,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 self.hideNotification();
             });
             
+            // Audio controls
+            if (this.elements.musicToggle) {
+                this.elements.musicToggle.addEventListener('click', function() {
+                    self.toggleBackgroundMusic();
+                });
+            }
+            
             // Window resize event
             window.addEventListener('resize', function() {
-                if (self.three.camera && self.three.renderer) {
-                    self.three.camera.aspect = self.elements.modelCanvas.clientWidth / self.elements.modelCanvas.clientHeight;
-                    self.three.camera.updateProjectionMatrix();
-                    self.three.renderer.setSize(self.elements.modelCanvas.clientWidth, self.elements.modelCanvas.clientHeight);
-                }
+                // Resize handling if needed
             });
         },
         
@@ -316,779 +283,528 @@ document.addEventListener('DOMContentLoaded', function() {
             // For now we're keeping the default English labels
         },
         
-        // Initialize the 3D scene
-        initializeScene: function() {
-            try {
-                console.log("Initializing 3D scene");
+        // Load assets
+        loadAssets: function() {
+            // Start the loading timer to prevent getting stuck
+            const loadingTimeout = setTimeout(() => {
+                console.log("Loading timeout reached - forcing completion");
                 
-                // First check if THREE is available
-                if (!window.THREE) {
-                    console.error("THREE is not defined - cannot initialize scene");
-                    this.showNotification("Error", "3D library not loaded. Try refreshing the page.", "error");
-                    return;
-                }
-                
-                // Create scene
-                this.three.scene = new THREE.Scene();
-                this.three.scene.background = new THREE.Color(this.config.theme.backgroundColor);
-                
-                // Create camera
-                this.three.camera = new THREE.PerspectiveCamera(
-                    45,
-                    this.elements.modelCanvas.clientWidth / this.elements.modelCanvas.clientHeight,
-                    0.1,
-                    1000
-                );
-                
-                // Set initial camera position
-                this.three.camera.position.set(0, 2, 5);
-                this.three.camera.lookAt(0, 0, 0);
-                
-                // Create renderer with alpha for transparency
-                this.three.renderer = new THREE.WebGLRenderer({
-                    canvas: this.elements.modelCanvas,
-                    antialias: true,
-                    alpha: true
-                });
-                
-                this.three.renderer.setSize(
-                    this.elements.modelCanvas.clientWidth,
-                    this.elements.modelCanvas.clientHeight
-                );
-                
-                this.three.renderer.setPixelRatio(window.devicePixelRatio);
-                this.three.renderer.shadowMap.enabled = true;
-                this.three.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                
-                // Add lights
-                this.setupLights();
-                
-                // Create animation clock
-                this.three.clock = new THREE.Clock();
-                
-                console.log("3D scene initialized successfully");
-                
-                // Load the model
-                this.loadModel();
-                
-                // Start the render loop
-                this.animate();
-                
-            } catch (error) {
-                console.error('Error initializing 3D scene:', error);
-                this.showNotification('Error', 'Could not initialize 3D scene: ' + error.message, 'error');
-                
-                // Hide the loading overlay anyway to prevent getting stuck
+                // Hide loading overlay
+                this.elements.loadingOverlay.style.opacity = '0';
                 setTimeout(() => {
+                    this.elements.loadingOverlay.style.display = 'none';
+                }, this.config.theme.animations.transitionSpeed);
+                
+                this.state.isAppInitialized = true;
+            }, 5000); // Reduced from 15000ms since we don't have 3D assets
+            
+            // Set up audio
+            this.setupAudio();
+            
+            // Add background particles if enabled
+            if (this.config.theme.backgroundParticlesCount > 0) {
+                this.createBackgroundParticles();
+            }
+            
+            // Hide loading overlay after a short delay
+            setTimeout(() => {
+                this.elements.loadingBar.style.width = '100%';
+                
+                setTimeout(() => {
+                    clearTimeout(loadingTimeout);
                     this.elements.loadingOverlay.style.opacity = '0';
                     setTimeout(() => {
                         this.elements.loadingOverlay.style.display = 'none';
-                    }, this.config.theme.animations.transitionSpeed);
-                }, 2000);
-            }
-        },
-        
-        // Set up the lights
-        setupLights: function() {
-            // Add ambient light
-            const ambientLight = new THREE.AmbientLight(
-                this.config.model.ambient.color, 
-                this.config.model.ambient.intensity
-            );
-            this.three.scene.add(ambientLight);
-            this.three.lights.ambient = ambientLight;
-            
-            // Add directional light (main light)
-            const directionalLight = new THREE.DirectionalLight(0xFFF7E6, 0.8);
-            directionalLight.position.set(5, 10, 5);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.camera.near = 0.1;
-            directionalLight.shadow.camera.far = 50;
-            directionalLight.shadow.camera.left = -10;
-            directionalLight.shadow.camera.right = 10;
-            directionalLight.shadow.camera.top = 10;
-            directionalLight.shadow.camera.bottom = -10;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            this.three.scene.add(directionalLight);
-            this.three.lights.main = directionalLight;
-            
-            // Add candle-like point lights
-            const candleLight1 = new THREE.PointLight(
-                this.config.model.candle.color, 
-                this.config.model.candle.intensity, 
-                15, 
-                1.5
-            );
-            candleLight1.position.set(3, 2, 3);
-            candleLight1.castShadow = true;
-            this.three.scene.add(candleLight1);
-            this.three.lights.candle1 = candleLight1;
-            
-            const candleLight2 = new THREE.PointLight(
-                this.config.model.candle.color, 
-                this.config.model.candle.intensity, 
-                15, 
-                1.5
-            );
-            candleLight2.position.set(-3, 2, -3);
-            candleLight2.castShadow = true;
-            this.three.scene.add(candleLight2);
-            this.three.lights.candle2 = candleLight2;
-            
-            // Add rim light for dramatic effect
-            const rimLight = new THREE.DirectionalLight(0xFFE5B4, 0.3);
-            rimLight.position.set(-5, 0, -5);
-            this.three.scene.add(rimLight);
-            this.three.lights.rim = rimLight;
-            
-            // Animate candle lights for flickering effect
-            this.animateCandleLights();
-        },
-        
-        // Animate candle lights for flickering effect
-        animateCandleLights: function() {
-            const self = this;
-            
-            const updateLight = (light) => {
-                if (!light) return;
+                }, this.config.theme.animations.transitionSpeed);
                 
-                // Random intensity fluctuation
-                const baseIntensity = this.config.model.candle.intensity;
-                const fluctuation = 0.3;
-                const newIntensity = baseIntensity + (Math.random() * fluctuation - fluctuation / 2);
-                light.intensity = newIntensity;
-                
-                // Subtle position fluctuation
-                const positionFluctuation = 0.05;
-                light.position.x += (Math.random() * positionFluctuation - positionFluctuation / 2);
-                light.position.y += (Math.random() * positionFluctuation - positionFluctuation / 2);
-                light.position.z += (Math.random() * positionFluctuation - positionFluctuation / 2);
-            };
-            
-            // Update every 100ms for subtle flickering
-            setInterval(() => {
-                if (this.config.theme.animations.enabled && this.three.lights) {
-                    updateLight(this.three.lights.candle1);
-                    updateLight(this.three.lights.candle2);
-                }
-            }, 100);
-        },
+                this.state.isAppInitialized = true;
+            }, 1000);
+        }, 2000);
+    },
+    
+    // Create background particles
+    createBackgroundParticles: function() {
+        const container = this.elements.particlesContainer;
+        const count = this.config.theme.backgroundParticlesCount;
         
-        // Animation loop
-        animate: function() {
-            const self = this;
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
             
-            function loop() {
-                requestAnimationFrame(loop);
+            // Random position
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            
+            // Random size
+            const size = Math.random() * 4 + 1;
+            
+            // Random opacity
+            const opacity = Math.random() * 0.3 + 0.1;
+            
+            // Set styles
+            particle.style.left = `${x}%`;
+            particle.style.top = `${y}%`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.opacity = opacity;
+            
+            // Random animation delay
+            particle.style.animationDelay = `${Math.random() * 10}s`;
+            
+            // Add to container
+            container.appendChild(particle);
+        }
+    },
+    
+    // Set up audio
+    setupAudio: function() {
+        console.log("Setting up audio...");
+        
+        // Create audio objects if Howler.js is available
+        if (typeof Howl !== 'undefined') {
+            // Background music
+            if (this.config.audio.backgroundMusic.src) {
+                console.log("Creating background music with source:", this.config.audio.backgroundMusic.src);
                 
-                if (self.three.renderer && self.three.scene && self.three.camera) {
-                    // Animate the model with subtle floating motion
-                    if (self.three.model && self.config.theme.animations.enabled) {
-                        const time = Date.now() * 0.001;
-                        const amplitude = self.config.theme.animations.modelMovementAmount;
-                        
-                        self.three.model.position.y = Math.sin(time * (2 * Math.PI / self.config.theme.animations.modelMovementSpeed)) * amplitude;
-                        self.three.model.rotation.y = Math.sin(time * (Math.PI / self.config.theme.animations.modelMovementSpeed)) * amplitude * 0.2;
+                this.audio.backgroundMusic = new Howl({
+                    src: [this.config.audio.backgroundMusic.src],
+                    loop: true,
+                    volume: this.config.audio.backgroundMusic.volume,
+                    autoplay: false,
+                    preload: true,
+                    onload: () => {
+                        console.log("Background music loaded successfully");
+                    },
+                    onloaderror: (id, error) => {
+                        console.error("Background music load error:", error);
+                        this.showNotification('Audio Error', 'Failed to load background music. Check if the file exists.', 'error');
+                    },
+                    onplay: () => {
+                        console.log("Background music playing");
                     }
-                    
-                    // Render scene
-                   self.three.renderer.render(self.three.scene, self.three.camera);
-               }
-           }
-           
-           loop();
-       },
-       
-       // Load assets
-       loadAssets: function() {
-           // Start the loading timer to prevent getting stuck
-           const loadingTimeout = setTimeout(() => {
-               console.log("Loading timeout reached - forcing completion");
-               
-               // Hide loading overlay
-               this.elements.loadingOverlay.style.opacity = '0';
-               setTimeout(() => {
-                   this.elements.loadingOverlay.style.display = 'none';
-               }, this.config.theme.animations.transitionSpeed);
-               
-               this.state.isAppInitialized = true;
-           }, 15000);
-           
-           // Set up audio
-           this.setupAudio();
-           
-           // Hide loading overlay after a short delay (or when model is loaded)
-           setTimeout(() => {
-               this.elements.loadingBar.style.width = '100%';
-               
-               setTimeout(() => {
-                   clearTimeout(loadingTimeout);
-                   this.elements.loadingOverlay.style.opacity = '0';
-                   setTimeout(() => {
-                       this.elements.loadingOverlay.style.display = 'none';
-                   }, this.config.theme.animations.transitionSpeed);
-                   
-                   this.state.isAppInitialized = true;
-               }, 1000);
-           }, 3000);
-       },
-       
-       // Set up audio
-       setupAudio: function() {
-           // Create audio objects if Howler.js is available
-           if (typeof Howl !== 'undefined') {
-               // Background music
-               this.audio.backgroundMusic = new Howl({
-                   src: [this.config.audio.backgroundMusic.src],
-                   loop: true,
-                   volume: this.config.audio.backgroundMusic.volume,
-                   autoplay: false,
-                   preload: true
-               });
-               
-               // Prayer audio (will be set dynamically)
-               this.audio.prayerAudio = new Howl({
-                   src: [''],
-                   volume: this.config.audio.prayerAudio.volume,
-                   autoplay: false,
-                   preload: true,
-                   onend: () => {
-                       if (this.state.isAutoAdvanceEnabled && this.state.isPlaying) {
-                           setTimeout(() => {
-                               this.nextPrayer();
-                           }, this.config.prayer.autoAdvanceDelay);
-                       }
-                   }
-               });
-               
-               // Effect sounds
-               this.audio.effects.click = new Howl({
-                   src: ['assets/audio/effects/click.mp3'],
-                   volume: this.config.audio.effects.volume,
-                   preload: true
-               });
-               
-               this.audio.effects.transition = new Howl({
-                   src: ['assets/audio/effects/transition.mp3'],
-                   volume: this.config.audio.effects.volume,
-                   preload: true
-               });
-           } else {
-               console.warn('Howler.js not loaded. Audio features disabled.');
-           }
-       },
-       
-       // Load 3D model
-       loadModel: function() {
-           const self = this;
-           
-           // Create a simple temporary object while loading
-           const geometry = new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16);
-           const material = new THREE.MeshStandardMaterial({ 
-               color: this.config.theme.accentColor,
-               metalness: 0.5,
-               roughness: 0.5
-           });
-           const tempModel = new THREE.Mesh(geometry, material);
-           this.three.scene.add(tempModel);
-           this.three.model = tempModel;
-           
-           // Skip if no URL provided
-           if (!this.config.model.url) {
-               console.log('No model URL specified. Using placeholder model.');
-               this.showNotification('Configuration', 'No model URL specified.');
-               return;
-           }
-           
-           try {
-               // Create a loader with proper error handling
-               // Use the global THREE object which should have GLTFLoader attached
-               const loader = new THREE.GLTFLoader();
-               
-               // Set up DRACOLoader for compressed models
-               const dracoLoader = new THREE.DRACOLoader();
-               dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-               dracoLoader.setDecoderConfig({ type: 'js' });
-               loader.setDRACOLoader(dracoLoader);
-               
-               // Log what we're attempting to load
-               console.log('Loading model from:', this.config.model.url);
-               
-               // Load the model
-               loader.load(
-                   // Resource URL
-                   this.config.model.url,
-                   
-                   // Success callback
-                   (gltf) => {
-                       console.log('Model loaded successfully!', gltf);
-                       
-                       // Remove the placeholder model
-                       this.three.scene.remove(tempModel);
-                       
-                       // Add the loaded model to the scene
-                       this.three.model = gltf.scene;
-                       this.three.scene.add(gltf.scene);
-                       
-                       // Apply scale
-                       gltf.scene.scale.set(
-                           this.config.model.scale,
-                           this.config.model.scale,
-                           this.config.model.scale
-                       );
-                       
-                       // Center the model
-                       const box = new THREE.Box3().setFromObject(gltf.scene);
-                       const center = box.getCenter(new THREE.Vector3());
-                       gltf.scene.position.x = -center.x;
-                       gltf.scene.position.y = -center.y;
-                       gltf.scene.position.z = -center.z;
-                       
-                       // Enable shadows and improve materials
-                       gltf.scene.traverse((node) => {
-                           if (node.isMesh) {
-                               node.castShadow = true;
-                               node.receiveShadow = true;
-                               
-                               if (node.material) {
-                                   // Enhance materials for religious aesthetic
-                                   node.material.metalness = 0.3;
-                                   node.material.roughness = 0.7;
-                                   
-                                   // Add emissive color for beads
-                                   if (node.name.toLowerCase().includes('bead')) {
-                                       node.material.emissive = new THREE.Color(this.config.theme.accentColor);
-                                       node.material.emissiveIntensity = 0.1;
-                                   }
-                                   
-                                   node.material.needsUpdate = true;
-                               }
-                           }
-                       });
-                       
-                       this.state.isModelLoaded = true;
-                       this.showNotification('Success', 'Sacred Rosary model loaded successfully!');
-                       
-                       // Animate the model for a nice reveal
-                       if (typeof gsap !== 'undefined') {
-                           gsap.from(gltf.scene.scale, {
-                               x: 0, y: 0, z: 0,
-                               duration: 1.5,
-                               ease: "back.out(1.7)"
-                           });
-                       }
-                   },
-                   
-                   // Progress callback
-                   (xhr) => {
-                       if (xhr.lengthComputable) {
-                           const percentComplete = (xhr.loaded / xhr.total) * 100;
-                           console.log('Model loading: ' + Math.round(percentComplete) + '% complete');
-                           if (this.elements.loadingBar) {
-                               this.elements.loadingBar.style.width = `${percentComplete}%`;
-                           }
-                       }
-                   },
-                   
-                   // Error callback
-                   (error) => {
-                       console.error('Error loading model:', error);
-                       
-                       // Provide specific error messages
-                       let errorMessage = 'Failed to load the Sacred Rosary model.';
-                       
-                       if (error.message.includes('CORS')) {
-                           errorMessage += ' This might be a CORS issue.';
-                       } else if (error.message.includes('404')) {
-                           errorMessage += ' The model file was not found.';
-                       } else if (error.message.includes('Failed to parse GLB')) {
-                           errorMessage += ' The model file might be corrupted.';
-                       }
-                       
-                       this.showNotification('Error', errorMessage, 'error');
-                       
-                       // Keep the placeholder model visible since loading failed
-                       console.log('Using placeholder model instead');
-                       this.state.isModelLoaded = false;
-                   }
-               );
-           } catch (error) {
-               console.error('Error in model loading process:', error);
-               this.showNotification('Error', 'Model loading error: ' + error.message, 'error');
-           }
-       },
-       
-       // Create the rosary sequence
-       createRosarySequence: function() {
-           const sequence = [];
-           
-           // Start with the Sign of the Cross and Apostles' Creed
-           sequence.push({prayer: 'signOfCross', type: 'prayer', decade: null, bead: null});
-           sequence.push({prayer: 'apostlesCreed', type: 'prayer', decade: null, bead: null});
-           
-           // First Our Father
-           sequence.push({prayer: 'ourFather', type: 'prayer', decade: 0, bead: 'opening-our-father'});
-           
-           // First three Hail Marys
-           for (let i = 0; i < 3; i++) {
-               sequence.push({prayer: 'hailMary', type: 'prayer', decade: 0, bead: `opening-hail-mary-${i+1}`});
-           }
-           
-           // Glory Be
-           sequence.push({prayer: 'gloryBe', type: 'prayer', decade: 0, bead: null});
-           
-           // Five decades
-           for (let decade = 0; decade < 5; decade++) {
-               // Announce mystery
-               sequence.push({
-                   type: 'mystery',
-                   mysteryIndex: decade,
-                   mysteryType: this.state.currentMysteryType,
-                   decade: decade+1,
-                   bead: null
-               });
-               
-               // Our Father
-               sequence.push({prayer: 'ourFather', type: 'prayer', decade: decade+1, bead: `decade-${decade+1}-our-father`});
-               
-               // 10 Hail Marys
-               for (let bead = 0; bead < 10; bead++) {
-                   sequence.push({prayer: 'hailMary', type: 'prayer', decade: decade+1, bead: `decade-${decade+1}-hail-mary-${bead+1}`});
-               }
-               
-               // Glory Be and Fatima Prayer
-               sequence.push({prayer: 'gloryBe', type: 'prayer', decade: decade+1, bead: null});
-               sequence.push({prayer: 'fatimaPrayer', type: 'prayer', decade: decade+1, bead: null});
-           }
-           
-           // Conclude with Hail Holy Queen and final prayer
-           sequence.push({prayer: 'hailHolyQueen', type: 'prayer', decade: null, bead: null});
-           sequence.push({prayer: 'finalPrayer', type: 'prayer', decade: null, bead: null});
-           sequence.push({prayer: 'signOfCross', type: 'prayer', decade: null, bead: null});
-           
-           this.state.rosarySequence = sequence;
-           return sequence;
-       },
-       
-       // Start the rosary prayer
-       startRosary: function() {
-           // Create the rosary sequence
-           this.createRosarySequence();
-           
-           // Reset prayer index
-           this.state.currentPrayerIndex = 0;
-           
-           // Hide landing page
-           this.elements.landingPage.style.opacity = '0';
-           this.elements.landingPage.style.transform = 'translateY(-20px)';
-           
-           // Play transition sound
-           if (this.audio.effects.transition) {
-               this.audio.effects.transition.play();
-           }
-           
-           // Start background music if enabled
-           if (this.config.audio.backgroundMusic.enabled && this.audio.backgroundMusic) {
-               this.audio.backgroundMusic.play();
-           }
-           
-           setTimeout(() => {
-               this.elements.landingPage.style.display = 'none';
-               this.elements.mainContent.style.display = 'flex';
-               
-               // Set up beads display
-               this.setupBeadIndicator();
-               
-               // Display first prayer
-               this.updatePrayerDisplay();
-           }, this.config.theme.animations.transitionSpeed);
-       },
-       
-       // Set up bead indicator
-       setupBeadIndicator: function() {
-           // Clear existing beads
-           this.elements.beadIndicator.innerHTML = '';
-           
-           // Create 10 beads for a decade
-           for (let i = 0; i < 10; i++) {
-               const bead = document.createElement('div');
-               bead.className = 'bead';
-               this.elements.beadIndicator.appendChild(bead);
-           }
-       },
-       
-       // Update prayer display
-       updatePrayerDisplay: function() {
-           const currentItem = this.state.rosarySequence[this.state.currentPrayerIndex];
-           
-           // Fade out current content
-           this.elements.prayerScroll.style.opacity = '0';
-           
-           setTimeout(() => {
-               // Update content based on prayer type
-               if (currentItem.type === 'prayer') {
-                   const prayer = this.state.prayerData[currentItem.prayer];
-                   this.elements.prayerTitle.textContent = prayer.title;
-                   this.elements.prayerInstructions.textContent = prayer.instructions;
-                   this.elements.prayerText.innerHTML = `<p>${prayer.text}</p>`;
-               } else if (currentItem.type === 'mystery') {
-                   const mystery = this.state.mysteryData[currentItem.mysteryType][currentItem.mysteryIndex];
-                   this.elements.prayerTitle.textContent = mystery.title;
-                   this.elements.prayerInstructions.textContent = 'Meditate on this mystery';
-                   
-                   // Add description and scripture if enabled
-                   let content = `<p>${mystery.description}</p>`;
-                   
-                   if (this.config.prayer.showScripture) {
-                       content += `<p class="scripture">${mystery.scripture}</p>`;
-                   }
-                   
-                   content += `<p class="fruits">${mystery.fruits}</p>`;
-                   this.elements.prayerText.innerHTML = content;
-                   
-                   // Update mystery info panel
-                   this.elements.mysteryInfo.querySelector('.mystery-title').textContent = mystery.title;
-                   this.elements.mysteryInfo.querySelector('.mystery-description').textContent = mystery.description;
-                   this.elements.mysteryInfo.querySelector('.mystery-fruits').textContent = mystery.fruits;
-                   this.elements.mysteryInfo.classList.add('visible');
-                   
-                   // Hide mystery info after a delay
-                   setTimeout(() => {
-                       this.elements.mysteryInfo.classList.remove('visible');
-                   }, 5000);
-               }
-               
-               // Update progress indicators
-               this.updateProgressIndicators();
-               
-               // Fade in new content
-               this.elements.prayerScroll.style.opacity = '1';
-           }, 300);
-       },
-       
-       // Update progress indicators (beads and decade dots)
-       updateProgressIndicators: function() {
-           const currentItem = this.state.rosarySequence[this.state.currentPrayerIndex];
-           
-           // Determine current decade and bead
-           let currentDecade = 0;
-           
-           if (currentItem.decade !== null) {
-               currentDecade = currentItem.decade;
-           }
-           
-           // Update decade dots
-           this.elements.decadeDots.forEach((dot, index) => {
-               dot.classList.remove('active', 'completed');
-               
-               if (index < currentDecade) {
-                   dot.classList.add('completed');
-               } else if (index === currentDecade) {
-                   dot.classList.add('active');
-               }
-           });
-           
-           // Update progress title
-           if (currentDecade === 0) {
-               this.elements.progressTitle.textContent = 'Opening Prayers';
-           } else if (currentDecade > 5) {
-               this.elements.progressTitle.textContent = 'Closing Prayers';
-           } else {
-               const ordinals = ['First', 'Second', 'Third', 'Fourth', 'Fifth'];
-               this.elements.progressTitle.textContent = `${ordinals[currentDecade - 1]} Decade`;
-           }
-           
-           // Update bead indicators
-           const beads = document.querySelectorAll('.bead');
-           
-           if (currentItem.prayer === 'hailMary') {
-               // Count how many Hail Marys we've seen in this decade
-               let hailMaryCount = 0;
-               
-               for (let i = 0; i <= this.state.currentPrayerIndex; i++) {
-                   const item = this.state.rosarySequence[i];
-                   if (item.prayer === 'hailMary' && item.decade === currentItem.decade) {
-                       hailMaryCount++;
-                   }
-               }
-               
-               // Update bead display
-               beads.forEach((bead, index) => {
-                   bead.classList.remove('active', 'completed', 'larger');
-                   
-                   if (index < hailMaryCount - 1) {
-                       bead.classList.add('completed');
-                   } else if (index === hailMaryCount - 1) {
-                       bead.classList.add('active');
-                   }
-               });
-           } else if (currentItem.prayer === 'ourFather') {
-               // For Our Father, just show one active bead
-               beads.forEach((bead, index) => {
-                   bead.classList.remove('active', 'completed');
-                   
-                   if (index === 0) {
-                       bead.classList.add('larger', 'active');
-                   }
-               });
-           } else {
-               // For other prayers, no active beads
-               beads.forEach(bead => {
-                   bead.classList.remove('active', 'completed', 'larger');
-               });
-           }
-       },
-       
-       // Navigate to the next prayer
-       nextPrayer: function() {
-           if (this.state.currentPrayerIndex < this.state.rosarySequence.length - 1) {
-               // Play click sound
-               if (this.audio.effects.click) {
-                   this.audio.effects.click.play();
-               }
-               
-               // Stop current audio if playing
-               if (this.state.isPlaying && this.audio.prayerAudio) {
-                   this.audio.prayerAudio.stop();
-               }
-               
-               this.state.currentPrayerIndex++;
-               this.updatePrayerDisplay();
-               
-               // Start audio for new prayer if auto-playing
-               if (this.state.isPlaying && this.config.audio.prayerAudio.enabled) {
-                   this.playPrayerAudio();
-               }
-           } else {
-               // End of rosary reached
-               if (this.audio.effects.transition) {
-                   this.audio.effects.transition.play();
-               }
-               this.showNotification('Rosary Complete', 'You have completed praying the rosary. God bless you!');
-           }
-       },
-       
-       // Navigate to the previous prayer
-       prevPrayer: function() {
-           if (this.state.currentPrayerIndex > 0) {
-               // Play click sound
-               if (this.audio.effects.click) {
-                   this.audio.effects.click.play();
-               }
-               
-               // Stop current audio if playing
-               if (this.state.isPlaying && this.audio.prayerAudio) {
-                   this.audio.prayerAudio.stop();
-               }
-               
-               this.state.currentPrayerIndex--;
-               this.updatePrayerDisplay();
-               
-               // Start audio for new prayer if auto-playing
-               if (this.state.isPlaying && this.config.audio.prayerAudio.enabled) {
-                   this.playPrayerAudio();
-               }
-           }
-       },
-       
-       // Toggle play/pause
-       togglePlay: function() {
-           this.state.isPlaying = !this.state.isPlaying;
-           
-           if (this.state.isPlaying) {
-               this.elements.playBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-               if (this.config.audio.prayerAudio.enabled) {
-                   this.playPrayerAudio();
-               }
-           } else {
-               this.elements.playBtn.innerHTML = '<i class="fas fa-play"></i> Play';
-               if (this.audio.prayerAudio) {
-                   this.audio.prayerAudio.pause();
-               }
-           }
-       },
-       
-       // Play current prayer audio
-       playPrayerAudio: function() {
-           if (!this.audio.prayerAudio) return;
-           
-           const currentItem = this.state.rosarySequence[this.state.currentPrayerIndex];
-           
-           let audioFile = '';
-           let duration = 5000; // Default duration
-           
-           if (currentItem.type === 'prayer') {
-               const prayer = this.state.prayerData[currentItem.prayer];
-               audioFile = prayer.audio;
-               duration = prayer.duration || 5000;
-           } else if (currentItem.type === 'mystery') {
-               const mystery = this.state.mysteryData[currentItem.mysteryType][currentItem.mysteryIndex];
-               audioFile = mystery.audio;
-               duration = mystery.duration || 15000;
-               
-               // Add meditation time based on settings
-               if (this.config.prayer.meditationDurations) {
-                   duration += this.config.prayer.meditationDurations[this.config.prayer.defaultMeditationDuration] || 0;
-               }
-           }
-           
-           // In a real app, you would set the audio source and play
-           // this.audio.prayerAudio.src = audioFile;
-           // this.audio.prayerAudio.play();
-           
-           // For demo, we'll simulate using setTimeout
-           if (this.state.isPlaying && this.state.isAutoAdvanceEnabled) {
-               setTimeout(() => {
-                   if (this.state.isPlaying && this.state.isAutoAdvanceEnabled && 
-                       this.state.currentPrayerIndex < this.state.rosarySequence.length - 1) {
-                       this.nextPrayer();
-                   } else if (this.state.isPlaying && 
-                              this.state.currentPrayerIndex === this.state.rosarySequence.length - 1) {
-                       // End of rosary reached
-                       this.state.isPlaying = false;
-                       this.elements.playBtn.innerHTML = '<i class="fas fa-play"></i> Play';
-                       if (this.audio.effects.transition) {
-                           this.audio.effects.transition.play();
-                       }
-                       this.showNotification('Rosary Complete', 'You have completed praying the rosary. God bless you!');
-                   }
-               }, duration);
-           }
-       },
-       
-       // Show notification
-       showNotification: function(title, message, type = 'info') {
-           // Set notification content
-           this.elements.notificationTitle.textContent = title;
-           this.elements.notificationMessage.textContent = message;
-           
-           // Apply notification type
-           this.elements.notification.className = 'notification';
-           this.elements.notification.classList.add(`notification-${type}`);
-           
-           // Show notification
-           this.elements.notification.classList.add('visible');
-           
-           // Hide after delay
-           setTimeout(() => {
-               this.hideNotification();
-           }, 4000);
-       },
-       
-       // Hide notification
-       hideNotification: function() {
-           this.elements.notification.classList.remove('visible');
-       },
-       
-       // Helper: Get ordinal suffix
-       getOrdinal: function(n) {
-           const s = ["th", "st", "nd", "rd"];
-           const v = n % 100;
-           return n + (s[(v - 20) % 10] || s[v] || s[0]);
-       }
-   };
-   
-   // Initialize the application
-   SacredRosary.init();
+                });
+            } else {
+                console.warn("No background music source specified in config");
+            }
+            
+            // Prayer audio (will be set dynamically)
+            this.audio.prayerAudio = new Howl({
+                src: [''], // Empty source initially
+                volume: this.config.audio.prayerAudio.volume,
+                autoplay: false,
+                preload: false,
+                onend: () => {
+                    if (this.state.isAutoAdvanceEnabled && this.state.isPlaying) {
+                        setTimeout(() => {
+                            this.nextPrayer();
+                        }, this.config.prayer.autoAdvanceDelay);
+                    }
+                }
+            });
+            
+            // Effect sounds
+            this.audio.effects.click = new Howl({
+                src: ['assets/audio/effects/click.mp3'],
+                volume: this.config.audio.effects.volume,
+                preload: true
+            });
+            
+            this.audio.effects.transition = new Howl({
+                src: ['assets/audio/effects/transition.mp3'],
+                volume: this.config.audio.effects.volume,
+                preload: true
+            });
+        } else {
+            console.warn('Howler.js not loaded. Audio features disabled.');
+            this.showNotification('Warning', 'Audio library not loaded. Sound features are disabled.', 'warning');
+        }
+    },
+    
+    // Toggle background music
+    toggleBackgroundMusic: function() {
+        if (!this.audio.backgroundMusic) return;
+        
+        if (this.audio.backgroundMusic.playing()) {
+            this.audio.backgroundMusic.pause();
+            if (this.elements.musicToggle) {
+                this.elements.musicToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            }
+        } else {
+            this.audio.backgroundMusic.play();
+            if (this.elements.musicToggle) {
+                this.elements.musicToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+        }
+    },
+    
+    // Create the rosary sequence
+    createRosarySequence: function() {
+        const sequence = [];
+        
+        // Start with the Sign of the Cross and Apostles' Creed
+        sequence.push({prayer: 'signOfCross', type: 'prayer', decade: null, bead: null});
+        sequence.push({prayer: 'apostlesCreed', type: 'prayer', decade: null, bead: null});
+        
+        // First Our Father
+        sequence.push({prayer: 'ourFather', type: 'prayer', decade: 0, bead: 'opening-our-father'});
+        
+        // First three Hail Marys
+        for (let i = 0; i < 3; i++) {
+            sequence.push({prayer: 'hailMary', type: 'prayer', decade: 0, bead: `opening-hail-mary-${i+1}`});
+        }
+        
+        // Glory Be
+        sequence.push({prayer: 'gloryBe', type: 'prayer', decade: 0, bead: null});
+        
+        // Five decades
+        for (let decade = 0; decade < 5; decade++) {
+            // Announce mystery
+            sequence.push({
+                type: 'mystery',
+                mysteryIndex: decade,
+                mysteryType: this.state.currentMysteryType,
+                decade: decade+1,
+                bead: null
+            });
+            
+            // Our Father
+            sequence.push({prayer: 'ourFather', type: 'prayer', decade: decade+1, bead: `decade-${decade+1}-our-father`});
+            
+            // 10 Hail Marys
+            for (let bead = 0; bead < 10; bead++) {
+                sequence.push({prayer: 'hailMary', type: 'prayer', decade: decade+1, bead: `decade-${decade+1}-hail-mary-${bead+1}`});
+            }
+            
+            // Glory Be and Fatima Prayer
+            sequence.push({prayer: 'gloryBe', type: 'prayer', decade: decade+1, bead: null});
+            sequence.push({prayer: 'fatimaPrayer', type: 'prayer', decade: decade+1, bead: null});
+        }
+        
+        // Conclude with Hail Holy Queen and final prayer
+        sequence.push({prayer: 'hailHolyQueen', type: 'prayer', decade: null, bead: null});
+        sequence.push({prayer: 'finalPrayer', type: 'prayer', decade: null, bead: null});
+        sequence.push({prayer: 'signOfCross', type: 'prayer', decade: null, bead: null});
+        
+        this.state.rosarySequence = sequence;
+        return sequence;
+    },
+    
+    // Start the rosary prayer
+    startRosary: function() {
+        // Create the rosary sequence
+        this.createRosarySequence();
+        
+        // Reset prayer index
+        this.state.currentPrayerIndex = 0;
+        
+        // Hide landing page
+        this.elements.landingPage.style.opacity = '0';
+        this.elements.landingPage.style.transform = 'translateY(-20px)';
+        
+        // Play transition sound
+        if (this.audio.effects.transition) {
+            this.audio.effects.transition.play();
+        }
+        
+        // Start background music if enabled
+        if (this.config.audio.backgroundMusic.enabled && this.audio.backgroundMusic) {
+            console.log("Attempting to play background music");
+            this.audio.backgroundMusic.play();
+        }
+        
+        setTimeout(() => {
+            this.elements.landingPage.style.display = 'none';
+            this.elements.mainContent.style.display = 'flex';
+            
+            // Set up beads display
+            this.setupBeadIndicator();
+            
+            // Display first prayer
+            this.updatePrayerDisplay();
+        }, this.config.theme.animations.transitionSpeed);
+    },
+    
+    // Set up bead indicator
+    setupBeadIndicator: function() {
+        // Clear existing beads
+        this.elements.beadIndicator.innerHTML = '';
+        
+        // Create 10 beads for a decade
+        for (let i = 0; i < 10; i++) {
+            const bead = document.createElement('div');
+            bead.className = 'bead';
+            this.elements.beadIndicator.appendChild(bead);
+        }
+    },
+    
+    // Update prayer display
+    updatePrayerDisplay: function() {
+        const currentItem = this.state.rosarySequence[this.state.currentPrayerIndex];
+        
+        // Fade out current content
+        this.elements.prayerScroll.style.opacity = '0';
+        
+        setTimeout(() => {
+            // Update content based on prayer type
+            if (currentItem.type === 'prayer') {
+                const prayer = this.state.prayerData[currentItem.prayer];
+                this.elements.prayerTitle.textContent = prayer.title;
+                this.elements.prayerInstructions.textContent = prayer.instructions;
+                this.elements.prayerText.innerHTML = `<p>${prayer.text}</p>`;
+            } else if (currentItem.type === 'mystery') {
+                const mystery = this.state.mysteryData[currentItem.mysteryType][currentItem.mysteryIndex];
+                this.elements.prayerTitle.textContent = mystery.title;
+                this.elements.prayerInstructions.textContent = 'Meditate on this mystery';
+                
+                // Add description and scripture if enabled
+                let content = `<p>${mystery.description}</p>`;
+                
+                if (this.config.prayer.showScripture) {
+                    content += `<p class="scripture">${mystery.scripture}</p>`;
+                }
+                
+                content += `<p class="fruits">${mystery.fruits}</p>`;
+                this.elements.prayerText.innerHTML = content;
+                
+                // Update mystery info panel
+                if (this.elements.mysteryInfo) {
+                    this.elements.mysteryInfo.querySelector('.mystery-title').textContent = mystery.title;
+                    this.elements.mysteryInfo.querySelector('.mystery-description').textContent = mystery.description;
+                    this.elements.mysteryInfo.querySelector('.mystery-fruits').textContent = mystery.fruits;
+                    this.elements.mysteryInfo.classList.add('visible');
+                }
+            }
+            
+            // Update progress indicators
+            this.updateProgressIndicators();
+            
+            // Fade in new content
+            this.elements.prayerScroll.style.opacity = '1';
+        }, 300);
+    },
+    
+    // Update progress indicators (beads and decade dots)
+    updateProgressIndicators: function() {
+        const currentItem = this.state.rosarySequence[this.state.currentPrayerIndex];
+        
+        // Determine current decade and bead
+        let currentDecade = 0;
+        
+        if (currentItem.decade !== null) {
+            currentDecade = currentItem.decade;
+        }
+        
+        // Update decade dots
+        this.elements.decadeDots.forEach((dot, index) => {
+            dot.classList.remove('active', 'completed');
+            
+            if (index < currentDecade) {
+                dot.classList.add('completed');
+            } else if (index === currentDecade) {
+                dot.classList.add('active');
+            }
+        });
+        
+        // Update progress title
+        if (currentDecade === 0) {
+            this.elements.progressTitle.textContent = 'Opening Prayers';
+        } else if (currentDecade > 5) {
+            this.elements.progressTitle.textContent = 'Closing Prayers';
+        } else {
+            const ordinals = ['First', 'Second', 'Third', 'Fourth', 'Fifth'];
+            this.elements.progressTitle.textContent = `${ordinals[currentDecade - 1]} Decade`;
+        }
+        
+        // Update bead indicators
+        const beads = document.querySelectorAll('.bead');
+        
+        if (currentItem.prayer === 'hailMary') {
+            // Count how many Hail Marys we've seen in this decade
+            let hailMaryCount = 0;
+            
+            for (let i = 0; i <= this.state.currentPrayerIndex; i++) {
+                const item = this.state.rosarySequence[i];
+                if (item.prayer === 'hailMary' && item.decade === currentItem.decade) {
+                    hailMaryCount++;
+                }
+            }
+            
+            // Update bead display
+            beads.forEach((bead, index) => {
+                bead.classList.remove('active', 'completed', 'larger');
+                
+                if (index < hailMaryCount - 1) {
+                    bead.classList.add('completed');
+                } else if (index === hailMaryCount - 1) {
+                    bead.classList.add('active');
+                }
+            });
+        } else if (currentItem.prayer === 'ourFather') {
+            // For Our Father, just show one active bead
+            beads.forEach((bead, index) => {
+                bead.classList.remove('active', 'completed');
+                
+                if (index === 0) {
+                    bead.classList.add('larger', 'active');
+                }
+            });
+        } else {
+            // For other prayers, no active beads
+            beads.forEach(bead => {
+                bead.classList.remove('active', 'completed', 'larger');
+            });
+        }
+    },
+    
+    // Navigate to the next prayer
+    nextPrayer: function() {
+        if (this.state.currentPrayerIndex < this.state.rosarySequence.length - 1) {
+            // Play click sound
+            if (this.audio.effects.click) {
+                this.audio.effects.click.play();
+            }
+            
+            // Stop current audio if playing
+            if (this.state.isPlaying && this.audio.prayerAudio) {
+                this.audio.prayerAudio.stop();
+            }
+            
+            this.state.currentPrayerIndex++;
+            this.updatePrayerDisplay();
+            
+            // Start audio for new prayer if auto-playing
+            if (this.state.isPlaying && this.config.audio.prayerAudio.enabled) {
+                this.playPrayerAudio();
+            }
+        } else {
+            // End of rosary reached
+            if (this.audio.effects.transition) {
+                this.audio.effects.transition.play();
+            }
+            this.showNotification('Rosary Complete', 'You have completed praying the rosary. God bless you!');
+        }
+    },
+    
+    // Navigate to the previous prayer
+    prevPrayer: function() {
+        if (this.state.currentPrayerIndex > 0) {
+            // Play click sound
+            if (this.audio.effects.click) {
+                this.audio.effects.click.play();
+            }
+            
+            // Stop current audio if playing
+            if (this.state.isPlaying && this.audio.prayerAudio) {
+                this.audio.prayerAudio.stop();
+            }
+            
+            this.state.currentPrayerIndex--;
+            this.updatePrayerDisplay();
+            
+            // Start audio for new prayer if auto-playing
+            if (this.state.isPlaying && this.config.audio.prayerAudio.enabled) {
+                this.playPrayerAudio();
+            }
+        }
+    },
+    
+    // Toggle play/pause
+    togglePlay: function() {
+        this.state.isPlaying = !this.state.isPlaying;
+        
+        if (this.state.isPlaying) {
+            this.elements.playBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+            if (this.config.audio.prayerAudio.enabled) {
+                this.playPrayerAudio();
+            }
+        } else {
+            this.elements.playBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+            if (this.audio.prayerAudio) {
+                this.audio.prayerAudio.pause();
+            }
+        }
+    },
+    
+    // Play current prayer audio
+    playPrayerAudio: function() {
+        if (!this.audio.prayerAudio) return;
+        
+        const currentItem = this.state.rosarySequence[this.state.currentPrayerIndex];
+        
+        let audioFile = '';
+        let duration = 5000; // Default duration
+        
+        if (currentItem.type === 'prayer') {
+            const prayer = this.state.prayerData[currentItem.prayer];
+            audioFile = prayer.audio;
+            duration = prayer.duration || 5000;
+        } else if (currentItem.type === 'mystery') {
+            const mystery = this.state.mysteryData[currentItem.mysteryType][currentItem.mysteryIndex];
+            audioFile = mystery.audio;
+            duration = mystery.duration || 15000;
+            
+            // Add meditation time based on settings
+            if (this.config.prayer.meditationDurations) {
+                duration += this.config.prayer.meditationDurations[this.config.prayer.defaultMeditationDuration] || 0;
+            }
+        }
+        
+        // In a real app, you would set the audio source and play
+        // this.audio.prayerAudio.src = audioFile;
+        // this.audio.prayerAudio.play();
+        
+        // For demo, we'll simulate using setTimeout
+        if (this.state.isPlaying && this.state.isAutoAdvanceEnabled) {
+            setTimeout(() => {
+                if (this.state.isPlaying && this.state.isAutoAdvanceEnabled && 
+                    this.state.currentPrayerIndex < this.state.rosarySequence.length - 1) {
+                    this.nextPrayer();
+                } else if (this.state.isPlaying && 
+                           this.state.currentPrayerIndex === this.state.rosarySequence.length - 1) {
+                    // End of rosary reached
+                    this.state.isPlaying = false;
+                    this.elements.playBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+                    if (this.audio.effects.transition) {
+                        this.audio.effects.transition.play();
+                    }
+                    this.showNotification('Rosary Complete', 'You have completed praying the rosary. God bless you!');
+                }
+            }, duration);
+        }
+    },
+    
+    // Show notification
+    showNotification: function(title, message, type = 'info') {
+        // Set notification content
+        this.elements.notificationTitle.textContent = title;
+        this.elements.notificationMessage.textContent = message;
+        
+        // Apply notification type
+        this.elements.notification.className = 'notification';
+        this.elements.notification.classList.add(`notification-${type}`);
+        
+        // Show notification
+        this.elements.notification.classList.add('visible');
+        
+        // Hide after delay
+        setTimeout(() => {
+            this.hideNotification();
+        }, 4000);
+    },
+    
+    // Hide notification
+    hideNotification: function() {
+        this.elements.notification.classList.remove('visible');
+    },
+    
+    // Helper: Get ordinal suffix
+    getOrdinal: function(n) {
+        const s = ["th", "st", "nd", "rd"];
+        const v = n % 100;
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+};
+
+// Initialize the application
+SacredRosary.init();
 });
