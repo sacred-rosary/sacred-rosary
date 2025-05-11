@@ -11,39 +11,23 @@
     <div id="status">Loading...</div>
     
     <script type="module">
-        import * as THREE from 'https://unpkg.com/three@latest/build/three.module.js';
-        
-        window.THREE = THREE;
-        
-        document.getElementById('status').innerHTML = `
-            <p>Three.js loaded successfully!</p>
-            <p>Version: ${THREE.REVISION}</p>
-        `;
-        
-        // Create a simple scene to test
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        
-        renderer.setSize(400, 300);
-        document.body.appendChild(renderer.domElement);
-        
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
-        
-        camera.position.z = 5;
-        
-        function animate() {
-            requestAnimationFrame(animate);
-            cube.rotation.x += 0.01;
-            cube.rotation.y += 0.01;
-            renderer.render(scene, camera);
-        }
-        
-        animate();
-    </script>
+    import * as THREE from 'https://unpkg.com/three@latest/build/three.module.js';
+    import { GLTFLoader } from 'https://unpkg.com/three@latest/examples/jsm/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'https://unpkg.com/three@latest/examples/jsm/loaders/DRACOLoader.js';
+    import { OrbitControls } from 'https://unpkg.com/three@latest/examples/jsm/controls/OrbitControls.js';
+    
+    window.THREE = THREE;
+    window.GLTFLoader = GLTFLoader;
+    window.DRACOLoader = DRACOLoader;
+    window.OrbitControls = OrbitControls;
+    
+    console.log('Loaded Three.js version:', THREE.REVISION);
+    
+    // Load app.js after Three.js is ready
+    const appScript = document.createElement('script');
+    appScript.src = 'js/app.js';
+    document.head.appendChild(appScript);
+</script>
     
     <script>
         // Error handling
