@@ -56,41 +56,10 @@ const ROSARY_CONFIG = {
             enabled: true,
             transitionSpeed: 800, // ms
             candleFlickerSpeed: 8, // seconds
-            modelMovementAmount: 0.3, // how much the model moves
-            modelMovementSpeed: 10 // seconds for full movement cycle
         },
         
         // Background Settings
         backgroundParticlesCount: 30, // Dust particles
-    },
-    
-    // 3D Model Settings
-    model: {
-        // Your model URL - make sure this is correct and accessible
-        url: "https://raw.githubusercontent.com/sacred-rosary/sacred-rosary/refs/heads/main/assets/models/rosary.glb",
-        
-        // Adjust scale as needed for your model
-        scale: 2.0,
-        
-        // No auto-rotation as requested
-        autoRotate: false,
-        
-        // Controls how fast the model moves subtly
-        rotationSpeed: 0.001,
-        
-        // Lighting settings
-        ambient: {
-            intensity: 0.7,
-            color: "#FFF0D9" // Warm light
-        },
-        
-        candle: {
-            intensity: 1.2,
-            color: "#FFCC88" // Candle light
-        },
-        
-        // Enable shadows for realism
-        shadow: true,
     },
     
     // Audio Settings
