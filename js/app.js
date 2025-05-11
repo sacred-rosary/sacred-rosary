@@ -493,22 +493,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     // Render scene
-                    self.three.renderer.render(self.three.scene, self.three.camera);
-                }
-            }
-            
-            loop();
-        },
-        
-        // Load assets
-        loadAssets: function() {
-            // Start the loading timer to prevent getting stuck
-            const loadingTimeout = setTimeout(() => {
-                console.log("Loading timeout reached - forcing completion");
-                
-                // Hide loading overlay
-                this.elements.loadingOverlay.style.opacity = '0';
-                setTimeout(() => {
+                   self.three.renderer.render(self.three.scene, self.three.camera);
+               }
+           }
+           
+           loop();
+       },
+       
+       // Load assets
+       loadAssets: function() {
+           // Start the loading timer to prevent getting stuck
+           const loadingTimeout = setTimeout(() => {
+               console.log("Loading timeout reached - forcing completion");
+               
+               // Hide loading overlay
+               this.elements.loadingOverlay.style.opacity = '0';
+               setTimeout(() => {
                    this.elements.loadingOverlay.style.display = 'none';
                }, this.config.theme.animations.transitionSpeed);
                
@@ -603,6 +603,7 @@ document.addEventListener('DOMContentLoaded', function() {
            
            try {
                // Create a loader with proper error handling
+               // Use the global THREE object which should have GLTFLoader attached
                const loader = new THREE.GLTFLoader();
                
                // Set up DRACOLoader for compressed models
