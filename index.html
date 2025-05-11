@@ -25,58 +25,33 @@
     <script src="js/prayers-en.js"></script>
     <script src="js/prayers-es.js"></script>
     
-    <!-- Replace the ES module imports with these UMD script tags -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/DRACOLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
-
-<script>
-    // This script will run after the above scripts are loaded
+    <script type="module">
+    // Use the latest version available
+    import * as THREE from 'https://unpkg.com/three@latest/build/three.module.js';
+    import { GLTFLoader } from 'https://unpkg.com/three@latest/examples/jsm/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'https://unpkg.com/three@latest/examples/jsm/loaders/DRACOLoader.js';
+    import { OrbitControls } from 'https://unpkg.com/three@latest/examples/jsm/controls/OrbitControls.js';
+    
+    // Make these available globally
+    window.THREE = THREE;
+    window.GLTFLoader = GLTFLoader;
+    window.DRACOLoader = DRACOLoader;
+    window.OrbitControls = OrbitControls;
+    
+    // Log version info
+    console.log('Loaded Three.js version:', THREE.REVISION);
+    
+    // Dispatch an event when modules are loaded so app.js can run
     window.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM content loaded - Three.js libraries ready');
-        console.log('Loaded Three.js version:', THREE.REVISION);
+        console.log('DOM content loaded - Three.js modules ready');
         
         // Create and load app.js script
         const appScript = document.createElement('script');
         appScript.src = 'js/app.js';
         document.body.appendChild(appScript);
-        
-        // Create debug button
-        const debugBtn = document.createElement('button');
-        debugBtn.innerText = 'Debug 3D Model';
-        debugBtn.style.position = 'fixed';
-        debugBtn.style.bottom = '10px';
-        debugBtn.style.right = '10px';
-        debugBtn.style.zIndex = '9999';
-        debugBtn.style.background = '#8B6C42';
-        debugBtn.style.color = '#F5EFE0';
-        debugBtn.style.border = 'none';
-        debugBtn.style.padding = '8px 12px';
-        debugBtn.style.borderRadius = '4px';
-        debugBtn.style.fontFamily = 'Cinzel, serif';
-        debugBtn.style.cursor = 'pointer';
-        
-        debugBtn.onclick = function() {
-            console.log('Debug Info:');
-            console.log('Three.js version:', THREE.REVISION);
-            console.log('MODEL_URL:', ROSARY_CONFIG.model.url);
-            
-            // Test model URL
-            fetch(ROSARY_CONFIG.model.url, { method: 'HEAD' })
-                .then(response => {
-                    console.log('URL exists:', response.ok, '(Status:', response.status + ')');
-                    alert(`Model URL check: ${response.ok ? 'Success' : 'Failed'} (${response.status})`);
-                })
-                .catch(error => {
-                    console.error('Error checking URL:', error);
-                    alert('Error checking URL: ' + error.message);
-                });
-        };
-        
-        document.body.appendChild(debugBtn);
     });
 </script>
+    
 </head>
 <body>
     <!-- Loading overlay -->
