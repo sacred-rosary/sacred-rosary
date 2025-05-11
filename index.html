@@ -1,204 +1,55 @@
+<!-- Create a test.html file with this content to test Three.js loading -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Sacred Rosary</title>
-    
-    <!-- Custom fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
-    
-    <!-- Non-Three.js libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
-    
-    <!-- App Configuration (load first) -->
-    <script src="js/config.js"></script>
-    
-    <!-- Prayer Data -->
-    <script src="js/prayers-en.js"></script>
-    <script src="js/prayers-es.js"></script>
-    
-    <script type="module">
-    // Use the latest version available
-    import * as THREE from 'https://unpkg.com/three@latest/build/three.module.js';
-    import { GLTFLoader } from 'https://unpkg.com/three@latest/examples/jsm/loaders/GLTFLoader.js';
-    import { DRACOLoader } from 'https://unpkg.com/three@latest/examples/jsm/loaders/DRACOLoader.js';
-    import { OrbitControls } from 'https://unpkg.com/three@latest/examples/jsm/controls/OrbitControls.js';
-    
-    // Make these available globally
-    window.THREE = THREE;
-    window.GLTFLoader = GLTFLoader;
-    window.DRACOLoader = DRACOLoader;
-    window.OrbitControls = OrbitControls;
-    
-    // Log version info
-    console.log('Loaded Three.js version:', THREE.REVISION);
-    
-    // Dispatch an event when modules are loaded so app.js can run
-    window.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM content loaded - Three.js modules ready');
-        
-        // Create and load app.js script
-        const appScript = document.createElement('script');
-        appScript.src = 'js/app.js';
-        document.body.appendChild(appScript);
-    });
-</script>
-    
+    <title>Three.js Test</title>
 </head>
 <body>
-    <!-- Loading overlay -->
-    <div class="loading-overlay">
-        <div class="loading-container">
-            <div class="loading-icon">
-                <div class="loading-circle"></div>
-                <div class="loading-circle"></div>
-                <div class="loading-circle"></div>
-            </div>
-            <div class="loading-text">Loading The Sacred Rosary</div>
-            <div class="loading-progress">
-                <div class="loading-bar"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Date confirmation dialog -->
-    <div class="date-confirmation-dialog">
-        <div class="date-confirmation-content">
-            <h2>Confirm Date</h2>
-            <p>Today is <span id="current-date"></span>.</p>
-            <p>The liturgical season is <span id="liturgical-season"></span>.</p>
-            <div class="date-confirmation-buttons">
-                <button id="date-confirm-button">Confirm</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Application container -->
-    <div class="app-container">
-        <!-- Background effects -->
-        <div class="background-effects">
-            <div class="gradient-bg"></div>
-            <div class="particles-container"></div>
-            <div class="vignette"></div>
-            <div class="candle-overlay"></div>
-            <div class="light-rays"></div>
-        </div>
-
-        <!-- Landing page -->
-        <div class="landing-page">
-            <div class="landing-content">
-                <svg class="app-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#D2B48C" stroke-width="2" />
-                    <path d="M50,10 L50,90" stroke="#D2B48C" stroke-width="2" />
-                    <path d="M30,30 L70,30" stroke="#D2B48C" stroke-width="2" />
-                    <path d="M20,50 L80,50" stroke="#D2B48C" stroke-width="2" />
-                    <path d="M30,70 L70,70" stroke="#D2B48C" stroke-width="2" />
-                    <circle cx="50" cy="50" r="5" fill="#D2B48C" />
-                </svg>
-                <h1 class="app-title">THE SACRED ROSARY</h1>
-                <p class="app-subtitle">A contemplative journey through prayer and meditation</p>
-                
-                <div class="language-selection">
-                    <h2 class="language-selection-label">Select Language</h2>
-                    <div class="language-buttons">
-                        <button class="language-btn active" data-language="en">English</button>
-                        <button class="language-btn" data-language="es">Español</button>
-                        <button class="language-btn disabled" data-language="la">Latin <span class="coming-soon">(Coming Soon)</span></button>
-                    </div>
-                </div>
-                
-                <div class="rosary-selection">
-                    <h2 class="rosary-selection-label">Select Mysteries</h2>
-                    <div class="mystery-selection">
-                        <button class="mystery-btn active" data-mystery="joyful">Joyful Mysteries</button>
-                        <button class="mystery-btn" data-mystery="sorrowful">Sorrowful Mysteries</button>
-                        <button class="mystery-btn" data-mystery="glorious">Glorious Mysteries</button>
-                        <button class="mystery-btn" data-mystery="luminous">Luminous Mysteries</button>
-                    </div>
-                </div>
-                
-                <button class="start-btn">
-                    <i class="fas fa-pray"></i> Begin Prayer
-                </button>
-                
-                <p class="app-version">Version 1.0.0</p>
-            </div>
-        </div>
-
-        <!-- Main content -->
-        <div class="main-content">
-            <!-- Prayer section -->
-            <div class="prayer-section">
-                <div class="prayer-backdrop"></div>
-                <div class="prayer-scroll">
-                    <div class="prayer-header">
-                        <h2 class="prayer-title">The Sign of the Cross</h2>
-                    </div>
-                    <p class="prayer-instructions">Begin by making the Sign of the Cross</p>
-                    <div class="prayer-text">
-                        <p>In the name of the Father, and of the Son, and of the Holy Spirit. Amen.</p>
-                    </div>
-                    
-                    <div class="rosary-progress">
-                        <h3 class="progress-title">Opening Prayers</h3>
-                        <div class="decade-indicator">
-                            <div class="decade-dot active"></div>
-                            <div class="decade-dot"></div>
-                            <div class="decade-dot"></div>
-                            <div class="decade-dot"></div>
-                            <div class="decade-dot"></div>
-                        </div>
-                        <div class="bead-indicator">
-                            <!-- Will be populated by JS -->
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="prayer-controls">
-                    <button class="prayer-btn prev-btn">
-                        <i class="fas fa-chevron-left"></i> Previous
-                    </button>
-                    <button class="prayer-btn play-btn">
-                        <i class="fas fa-play"></i> Play
-                    </button>
-                    <button class="prayer-btn next-btn">
-                        Next <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- 3D model section -->
-            <div class="model-section">
-                <div class="model-container">
-                    <canvas id="model-canvas"></canvas>
-                </div>
-                
-                <div class="mystery-info">
-                    <h3 class="mystery-title">The Annunciation</h3>
-                    <p class="mystery-description">The Angel Gabriel announces to Mary that she is to be the Mother of God.</p>
-                    <p class="mystery-fruits">Fruit of the Mystery: Humility</p>
-                </div>
-            </div>
-        </div>
+    <h1>Three.js Loading Test</h1>
+    <div id="status">Loading...</div>
+    
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@latest/build/three.module.js';
         
-        <!-- Notification -->
-        <div class="notification">
-            <div class="notification-header">
-                <span class="notification-title">Notification Title</span>
-                <button class="notification-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <p class="notification-message">Notification message goes here.</p>
-        </div>
-    </div>
+        window.THREE = THREE;
+        
+        document.getElementById('status').innerHTML = `
+            <p>Three.js loaded successfully!</p>
+            <p>Version: ${THREE.REVISION}</p>
+        `;
+        
+        // Create a simple scene to test
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        
+        renderer.setSize(400, 300);
+        document.body.appendChild(renderer.domElement);
+        
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+        
+        camera.position.z = 5;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+    </script>
+    
+    <script>
+        // Error handling
+        window.addEventListener('error', (event) => {
+            document.getElementById('status').innerHTML += `<p style="color: red;">Error: ${event.message}</p>`;
+        });
+    </script>
 </body>
 </html>
