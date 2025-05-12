@@ -2,11 +2,11 @@
 const ROSARY_CONFIG = {
     // App Information
     appName: "The Sacred Rosary",
-    appVersion: "1.0.0",
+    appVersion: "1.1.0",
     
     // Visual Theme
     theme: {
-        // Base Colors
+        // Base Colors (Default theme)
         primaryColor: "#8B6C42",       // Rich light brown
         secondaryColor: "#5D4B35",     // Darker brown
         accentColor: "#D2B48C",        // Tan
@@ -17,37 +17,62 @@ const ROSARY_CONFIG = {
         shadowColor: "rgba(0, 0, 0, 0.6)",
         glowColor: "rgba(255, 200, 100, 0.4)", // Candlelight glow
         
-        // Liturgical Season Colors
-        liturgicalColors: {
-            ordinary: {
+        // Theme presets
+        presets: {
+            default: {
                 primaryColor: "#8B6C42",
                 secondaryColor: "#5D4B35",
-                accentColor: "#D2B48C", 
+                accentColor: "#D2B48C",
+                textColor: "#F5EFE0",
+                backgroundColor: "#1A150F",
+                overlayColor: "rgba(26, 21, 15, 0.85)",
+                borderColor: "rgba(210, 180, 140, 0.3)",
+                shadowColor: "rgba(0, 0, 0, 0.6)",
+                glowColor: "rgba(255, 200, 100, 0.4)"
             },
-            advent: {
-                primaryColor: "#614B6C", // Purple-brown
-                secondaryColor: "#483953",
-                accentColor: "#C9A7DB", 
+            dark: {
+                primaryColor: "#5D5D8D",
+                secondaryColor: "#30305D",
+                accentColor: "#9D9DCD",
+                textColor: "#F5F5FF",
+                backgroundColor: "#1A1A2F",
+                overlayColor: "rgba(26, 26, 47, 0.85)",
+                borderColor: "rgba(157, 157, 205, 0.3)",
+                shadowColor: "rgba(0, 0, 0, 0.6)",
+                glowColor: "rgba(157, 157, 255, 0.3)"
             },
-            christmas: {
-                primaryColor: "#B39247", // Gold-brown
-                secondaryColor: "#7A6331",
-                accentColor: "#F5E7C1",
+            light: {
+                primaryColor: "#8D785D",
+                secondaryColor: "#5D4E30",
+                accentColor: "#D3B88C",
+                textColor: "#1A1A1A",
+                backgroundColor: "#F5F5F0",
+                overlayColor: "rgba(245, 245, 240, 0.85)",
+                borderColor: "rgba(141, 120, 93, 0.3)",
+                shadowColor: "rgba(0, 0, 0, 0.2)",
+                glowColor: "rgba(211, 184, 140, 0.4)"
             },
-            lent: {
-                primaryColor: "#6C3B5D", // Purple-red
-                secondaryColor: "#49293F",
-                accentColor: "#DBA7C9",
+            sepia: {
+                primaryColor: "#8D5D3B",
+                secondaryColor: "#5D3D20",
+                accentColor: "#D38D58",
+                textColor: "#33200D",
+                backgroundColor: "#F5E8D8",
+                overlayColor: "rgba(245, 232, 216, 0.85)",
+                borderColor: "rgba(141, 93, 59, 0.3)",
+                shadowColor: "rgba(0, 0, 0, 0.2)",
+                glowColor: "rgba(211, 141, 88, 0.4)"
             },
-            easter: {
-                primaryColor: "#B3A247", // Gold
-                secondaryColor: "#8C7E38",
-                accentColor: "#F5F1C1",
-            },
-            feast: {
-                primaryColor: "#8C4635", // Red-brown
-                secondaryColor: "#6B2E26",
-                accentColor: "#F0B7B7",
+            mourning: {
+                primaryColor: "#4a4a4a",
+                secondaryColor: "#333333",
+                accentColor: "#999999",
+                textColor: "#f5f5f5",
+                backgroundColor: "#000000",
+                overlayColor: "rgba(0, 0, 0, 0.9)",
+                borderColor: "rgba(100, 100, 100, 0.3)",
+                shadowColor: "rgba(0, 0, 0, 0.8)",
+                glowColor: "rgba(150, 150, 150, 0.3)"
             }
         },
         
@@ -82,6 +107,7 @@ const ROSARY_CONFIG = {
     // Prayer Settings
     prayer: {
         autoAdvanceDelay: 1000, // ms to wait after audio finishes before advancing
+        autoAdvance: true, // Auto-advance prayers (can be toggled in settings)
         meditationDurations: {
             none: 0,
             short: 5000,
@@ -102,45 +128,22 @@ const ROSARY_CONFIG = {
         ]
     },
     
-    // Liturgical Calendar Settings
-    liturgicalCalendar: {
-        // Format: month-day: season
-        // 0 = Ordinary Time (green/brown)
-        // 1 = Advent (purple)
-        // 2 = Christmas (white/gold)
-        // 3 = Lent (purple)
-        // 4 = Easter (white/gold)
-        // 5 = Feast days (red)
-        
-        // Advent (approximate - 4 Sundays before Christmas)
-        "11-27": 1, "11-28": 1, "11-29": 1, "11-30": 1,
-        "12-1": 1, "12-2": 1, "12-3": 1, "12-4": 1, "12-5": 1, "12-6": 1, "12-7": 1,
-        "12-8": 1, "12-9": 1, "12-10": 1, "12-11": 1, "12-12": 1, "12-13": 1, "12-14": 1,
-        "12-15": 1, "12-16": 1, "12-17": 1, "12-18": 1, "12-19": 1, "12-20": 1, "12-21": 1,
-        "12-22": 1, "12-23": 1, "12-24": 1,
-        
-        // Christmas
-        "12-25": 2, "12-26": 2, "12-27": 2, "12-28": 2, "12-29": 2, "12-30": 2, "12-31": 2,
-        "1-1": 2, "1-2": 2, "1-3": 2, "1-4": 2, "1-5": 2, "1-6": 2, "1-7": 2, "1-8": 2, "1-9": 2,
-        
-        // Ash Wednesday and Lent (approximate - would need adjustment yearly)
-        "2-17": 3, "2-18": 3, "2-19": 3, "2-20": 3, "2-21": 3, "2-22": 3, "2-23": 3,
-        "2-24": 3, "2-25": 3, "2-26": 3, "2-27": 3, "2-28": 3, "2-29": 3, "3-1": 3,
-        "3-2": 3, "3-3": 3, "3-4": 3, "3-5": 3, "3-6": 3, "3-7": 3, "3-8": 3,
-        "3-9": 3, "3-10": 3, "3-11": 3, "3-12": 3, "3-13": 3, "3-14": 3, "3-15": 3,
-        "3-16": 3, "3-17": 3, "3-18": 3, "3-19": 3, "3-20": 3, "3-21": 3, "3-22": 3,
-        "3-23": 3, "3-24": 3, "3-25": 3, "3-26": 3, "3-27": 3, "3-28": 3, "3-29": 3,
-        "3-30": 3, "3-31": 3, "4-1": 3, "4-2": 3,
-        
-        // Easter (approximate - would need adjustment yearly)
-        "4-3": 4, "4-4": 4, "4-5": 4, "4-6": 4, "4-7": 4, "4-8": 4, "4-9": 4,
-        "4-10": 4, "4-11": 4, "4-12": 4, "4-13": 4, "4-14": 4, "4-15": 4, "4-16": 4,
-        "4-17": 4, "4-18": 4, "4-19": 4, "4-20": 4, "4-21": 4, "4-22": 4, "4-23": 4,
-        
-        // Some major feast days
-        "3-19": 5, // St. Joseph
-        "6-29": 5, // Sts. Peter and Paul
-        "8-15": 5, // Assumption
-        "11-1": 5, // All Saints
+    // Mourning Settings
+    mourning: {
+        enabled: false,
+        message: "We are in a period of mourning.",
+        startDate: "", // Will be set in format YYYY-MM-DD
+        endDate: ""    // Will be set in format YYYY-MM-DD
+    },
+    
+    // Display Settings
+    display: {
+        theme: "default",
+        fontSize: 100 // Percentage
+    },
+    
+    // User Settings (will be saved/loaded from localStorage)
+    userSettings: {
+        // Will be populated with user preferences
     }
 };
