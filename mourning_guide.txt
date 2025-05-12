@@ -1,0 +1,121 @@
+# Sacred Rosary - Administrator's Guide to Mourning Mode
+
+As the site administrator, you can enable a site-wide mourning mode that overrides user preferences and sets the site to a black theme. This guide explains how to configure and manage this feature.
+
+## Enabling Mourning Mode
+
+To enable mourning mode, edit the `config.js` file and modify the `admin.mourning` section:
+
+1. Set `enabled` to `true`
+2. Customize the mourning message
+3. Set the start and end dates for the mourning period
+4. Ensure `overrideUserTheme` is `true` to force the black theme for all users
+5. Set `showBanner` to `true` to display the announcement banner
+
+## Example Configuration
+
+```javascript
+admin: {
+    // Mourning Mode Settings
+    mourning: {
+        enabled: true,              // Set to true to enable mourning mode
+        message: "We are in a period of mourning for Pope Francis. Please pray for the repose of his soul.",
+        startDate: "2025-01-01",    // Format: YYYY-MM-DD
+        endDate: "2025-01-09",      // Format: YYYY-MM-DD
+        overrideUserTheme: true,    // Force black theme
+        showBanner: true            // Show announcement
+    },
+    // ...other admin settings
+}
+```
+
+## How It Works
+
+When a user visits the site during the specified period:
+
+1. The site will automatically switch to the black mourning theme
+2. The mourning message will be displayed in a banner at the top of the page
+3. Users will not be able to change the theme in the settings panel
+4. All other user preferences (audio, meditation duration) will still work
+
+## Testing Mourning Mode
+
+To test mourning mode before a real mourning period:
+
+1. Set `enabled` to `true`
+2. Set `startDate` and `endDate` to include the current date
+3. Refresh the site (you may need to clear your cache with Ctrl+F5)
+4. Check that the site appears in the black theme with the mourning banner
+5. Try changing the theme in settings to verify it's locked
+6. When done testing, set `enabled` back to `false`
+
+## Forcing Cache Refresh
+
+To ensure all users see your changes immediately, increment the version number:
+
+```javascript
+admin: {
+    // ...mourning settings
+    
+    // Site Version - Increment this to force cache refresh
+    version: "1.1.1",  // Change from 1.1.0 to 1.1.1
+    
+    // ...other admin settings
+}
+```
+
+## Common Scenarios
+
+### Pope's Death
+
+For the death of a Pope, a typical mourning period is 9 days (Novemdiales):
+
+```javascript
+mourning: {
+    enabled: true,
+    message: "We are in a period of mourning for Pope Francis. Please pray for the repose of his soul.",
+    startDate: "2025-01-01",
+    endDate: "2025-01-09",
+    overrideUserTheme: true,
+    showBanner: true
+}
+```
+
+### Good Friday
+
+For Good Friday or other liturgical days of mourning:
+
+```javascript
+mourning: {
+    enabled: true,
+    message: "Today is Good Friday, a day of fasting and abstinence as we remember Christ's Passion and Death.",
+    startDate: "2025-04-18",
+    endDate: "2025-04-18",
+    overrideUserTheme: true,
+    showBanner: true
+}
+```
+
+### National Tragedy
+
+For a national day of mourning:
+
+```javascript
+mourning: {
+    enabled: true,
+    message: "Today is a National Day of Mourning. We pray for all those affected by the recent tragedy.",
+    startDate: "2025-05-01",
+    endDate: "2025-05-01",
+    overrideUserTheme: true,
+    showBanner: true
+}
+```
+
+## Additional Tips
+
+- Always test the mourning mode before a significant event
+- Set exact start and end times by configuring the dates properly
+- Consider adding a special prayer intention for the mourning period
+- Increment the version number to ensure changes are visible to all users
+
+If you have any questions about managing the mourning mode, please refer to the technical documentation or contact the developer.
