@@ -107,7 +107,6 @@ const ROSARY_CONFIG = {
     // Prayer Settings
     prayer: {
         autoAdvanceDelay: 1000, // ms to wait after audio finishes before advancing
-        autoAdvance: true, // Auto-advance prayers (can be toggled in settings)
         meditationDurations: {
             none: 0,
             short: 5000,
@@ -128,22 +127,36 @@ const ROSARY_CONFIG = {
         ]
     },
     
-    // Mourning Settings
-    mourning: {
-        enabled: false,
-        message: "We are in a period of mourning.",
-        startDate: "", // Will be set in format YYYY-MM-DD
-        endDate: ""    // Will be set in format YYYY-MM-DD
-    },
-    
     // Display Settings
     display: {
         theme: "default",
-        fontSize: 100 // Percentage
     },
     
-    // User Settings (will be saved/loaded from localStorage)
-    userSettings: {
-        // Will be populated with user preferences
+    // Admin Settings - The site owner can edit these values directly in this file
+    admin: {
+        // Mourning Mode Settings
+        mourning: {
+            enabled: false,              // Set to true to enable mourning mode site-wide
+            message: "We are in a period of mourning for Pope Francis.",  // Change to your specific message
+            startDate: "2025-01-01",     // Format: YYYY-MM-DD (when mourning begins)
+            endDate: "2025-01-09",       // Format: YYYY-MM-DD (when mourning ends)
+            overrideUserTheme: true,     // If true, forces black theme even if user selected another theme
+            showBanner: true             // Whether to show the announcement banner
+        },
+        
+        // Site Version - Increment this to force cache refresh
+        version: "1.1.0",
+        
+        // Site Messages - Announcements that will show to all users
+        announcements: [
+            // Uncomment and edit to show an announcement
+            // {
+            //     enabled: false,
+            //     title: "Site Maintenance",
+            //     message: "The Sacred Rosary will be undergoing maintenance on May 15.",
+            //     startDate: "2025-05-10",
+            //     endDate: "2025-05-14"
+            // }
+        ]
     }
 };
