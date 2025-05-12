@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPrayerIndex: 0,
             currentMysteryType: 'joyful',
             isPlaying: true, // Start playing automatically
-            isAutoAdvanceEnabled: true, // Auto-advance enabled by default
             isAppInitialized: false,
             activeLanguage: 'en',
             loadingProgress: 0,
@@ -19,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             rosarySequence: [], // Will hold the current rosary sequence
             totalPrayers: 0,    // Total number of prayers in the sequence
             settingsVisible: false, // Settings panel visibility
+            inMourningPeriod: false, // Whether we're in an admin-defined mourning period
         },
         
         // DOM Elements
@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
             effects: {},
         },
         
+        // Initialize the application
         init: function() {
             console.log("Initializing Sacred Rosary Application");
             
@@ -121,21 +122,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Settings inputs
                 this.elements.themeSelect = document.getElementById('theme-select');
-                this.elements.fontSizeRange = document.getElementById('font-size');
-                this.elements.fontSizeValue = document.getElementById('font-size-value');
                 this.elements.bgMusicToggle = document.getElementById('bg-music-toggle');
                 this.elements.bgMusicVolume = document.getElementById('bg-music-volume');
                 this.elements.bgMusicVolumeValue = document.getElementById('bg-music-volume-value');
                 this.elements.effectsToggle = document.getElementById('effects-toggle');
-                this.elements.autoAdvanceToggle = document.getElementById('auto-advance-toggle');
                 this.elements.meditationDuration = document.getElementById('meditation-duration');
                 
                 // Mourning elements
-                this.elements.mourningToggle = document.getElementById('mourning-toggle');
-                this.elements.mourningDetails = document.querySelector('.mourning-details');
-                this.elements.mourningMessage = document.getElementById('mourning-message-input');
-                this.elements.mourningStartDate = document.getElementById('mourning-start-date');
-                this.elements.mourningEndDate = document.getElementById('mourning-end-date');
                 this.elements.mourningAnnouncement = document.getElementById('mourning-announcement');
                 this.elements.mourningCloseBtn = document.getElementById('mourning-close-btn');
             } catch (error) {
@@ -143,7 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         
+        // Apply theme
         applyTheme: function(themeName) {
+            // If we're in mourning period and it overrides user theme, force mourning theme
             if (this.state.inMourningPeriod && 
                 this.config.admin && 
                 this.config.admin.mourning && 
@@ -176,9 +171,15 @@ document.addEventListener('DOMContentLoaded', function() {
             root.style.setProperty('--shadow-color', theme.shadowColor);
             root.style.setProperty('--glow-color', theme.glowColor);
             
+            // Set animation speeds
+            root.style.setProperty('--transition-slow', `${this.config.theme.animations.transitionSpeed}ms`);
+            root.style.setProperty('--transition-medium', `${this.config.theme.animations.transitionSpeed * 0.6}ms`);
+            root.style.setProperty('--transition-fast', `${this.config.theme.animations.transitionSpeed * 0.3}ms`);
+            
             // Update settings select if it exists and we're not in mourning mode
             if (this.elements.themeSelect && !this.state.inMourningPeriod) {
                 this.elements.themeSelect.value = themeName;
+                this.elements.themeSelect.disabled = false;
             } else if (this.elements.themeSelect && this.state.inMourningPeriod) {
                 // Disable theme selection during mourning
                 this.elements.themeSelect.value = 'mourning';
@@ -191,28 +192,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         
-        // Apply font size
-        applyFontSize: function(size) {
-            if (!size) size = 100;
-            
-            document.body.style.fontSize = `${size}%`;
-            
-            // Update range input if it exists
-            if (this.elements.fontSizeRange) {
-                this.elements.fontSizeRange.value = size;
-                this.elements.fontSizeValue.textContent = `${size}%`;
-            }
-            
-            // Save the current font size
-            this.config.display.fontSize = size;
-        },
-        
+        // Set up event listeners
         setupEventListeners: function() {
             const self = this;
             
-            // ...existing event listeners...
+            // Language selection
+            this.elements.languageBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (this.classList.contains('disabled')) return;
+                    
+                    self.elements.languageBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    self.setLanguage(this.dataset.language);
+                });
+            });
             
-            // Settings toggle buttons - Both landing page and prayer view
+            // Mystery selection
+            this.elements.mysteryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    self.elements.mysteryBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    self.state.currentMysteryType = this.dataset.mystery;
+                });
+            });
+            
+            // Start button
+            this.elements.startBtn.addEventListener('click', function() {
+                self.startRosary();
+            });
+            
+            // Prayer navigation buttons
+            this.elements.prevBtn.addEventListener('click', function() {
+                self.prevPrayer();
+            });
+            
+            this.elements.nextBtn.addEventListener('click', function() {
+                self.nextPrayer();
+            });
+            
+            this.elements.playBtn.addEventListener('click', function() {
+                self.togglePlay();
+            });
+            
+            // Notification close button
+            this.elements.notificationClose.addEventListener('click', function() {
+                self.hideNotification();
+            });
+            
+            // Settings toggle buttons
             if (this.elements.settingsToggleBtn) {
                 this.elements.settingsToggleBtn.addEventListener('click', function() {
                     self.toggleSettings();
@@ -288,8 +315,98 @@ document.addEventListener('DOMContentLoaded', function() {
                     self.config.prayer.defaultMeditationDuration = this.value;
                 });
             }
+            
+            // Mourning announcement close button
+            if (this.elements.mourningCloseBtn) {
+                this.elements.mourningCloseBtn.addEventListener('click', function() {
+                    self.elements.mourningAnnouncement.classList.remove('visible');
+                });
+            }
+            
+            // Window resize event
+            window.addEventListener('resize', function() {
+                // Resize handling if needed
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Don't handle keyboard when typing in inputs
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                
+                switch (e.key) {
+                    case ' ': // Space bar
+                        self.togglePlay();
+                        e.preventDefault();
+                        break;
+                    case 'ArrowRight':
+                    case 'ArrowDown':
+                        self.nextPrayer();
+                        e.preventDefault();
+                        break;
+                    case 'ArrowLeft':
+                    case 'ArrowUp':
+                        self.prevPrayer();
+                        e.preventDefault();
+                        break;
+                    case 'Escape':
+                        if (self.state.settingsVisible) {
+                            self.toggleSettings(false);
+                            e.preventDefault();
+                        }
+                        break;
+                }
+            });
         },
         
+        // Check if we're in a mourning period (Admin controlled)
+        checkMourningPeriod: function() {
+            // Check admin settings for mourning mode
+            if (!this.config.admin || !this.config.admin.mourning || !this.config.admin.mourning.enabled) {
+                return false;
+            }
+            
+            const mourningSettings = this.config.admin.mourning;
+            const today = new Date();
+            let startDate = null;
+            let endDate = null;
+            
+            if (mourningSettings.startDate) {
+                startDate = new Date(mourningSettings.startDate);
+            }
+            
+            if (mourningSettings.endDate) {
+                endDate = new Date(mourningSettings.endDate);
+                // Set to end of day
+                endDate.setHours(23, 59, 59, 999);
+            }
+            
+            const isInMourningPeriod = (!startDate || today >= startDate) && 
+                                      (!endDate || today <= endDate);
+            
+            if (isInMourningPeriod) {
+                console.log("Site is in mourning mode");
+                
+                // Apply mourning theme - this overrides user preferences
+                if (mourningSettings.overrideUserTheme) {
+                    this.applyTheme('mourning');
+                    
+                    // Flag that we're in mourning mode so theme can't be changed by user
+                    this.state.inMourningPeriod = true;
+                }
+                
+                // Show announcement banner if enabled
+                if (mourningSettings.showBanner && this.elements.mourningAnnouncement) {
+                    document.getElementById('mourning-message').textContent = mourningSettings.message;
+                    this.elements.mourningAnnouncement.classList.add('visible');
+                }
+                
+                return true;
+            }
+            
+            return false;
+        },
+        
+        // Toggle settings panel
         toggleSettings: function(show) {
             if (show === undefined) {
                 show = !this.state.settingsVisible;
@@ -305,6 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         
+        // Update settings UI to match current config
         updateSettingsUI: function() {
             // Theme - check if in mourning period
             if (this.state.inMourningPeriod) {
@@ -330,33 +448,36 @@ document.addEventListener('DOMContentLoaded', function() {
             this.elements.meditationDuration.value = this.config.prayer.defaultMeditationDuration;
         },
         
+        // Save settings
         saveSettings: function() {
-                    localStorage.setItem('sacredRosarySettings', JSON.stringify({
-                        display: {
-                            theme: this.config.display.theme
-                        },
-                        audio: {
-                            backgroundMusic: {
-                                enabled: this.config.audio.backgroundMusic.enabled,
-                                volume: this.config.audio.backgroundMusic.volume
-                            },
-                            effects: {
-                                enabled: this.config.audio.effects.enabled
-                            }
-                        },
-                        prayer: {
-                            defaultMeditationDuration: this.config.prayer.defaultMeditationDuration
-                        }
-                    }));
-                    
-                    // Show notification
-                    this.showNotification('Settings Saved', 'Your settings have been saved successfully.');
-                    
-                    // Close settings panel
-                    this.toggleSettings(false);
+            // Save settings to localStorage
+            localStorage.setItem('sacredRosarySettings', JSON.stringify({
+                display: {
+                    theme: this.config.display.theme
                 },
-                
-                resetSettings: function() {
+                audio: {
+                    backgroundMusic: {
+                        enabled: this.config.audio.backgroundMusic.enabled,
+                        volume: this.config.audio.backgroundMusic.volume
+                    },
+                    effects: {
+                        enabled: this.config.audio.effects.enabled
+                    }
+                },
+                prayer: {
+                    defaultMeditationDuration: this.config.prayer.defaultMeditationDuration
+                }
+            }));
+            
+            // Show notification
+            this.showNotification('Settings Saved', 'Your settings have been saved successfully.');
+            
+            // Close settings panel
+            this.toggleSettings(false);
+        },
+        
+        // Reset settings to default
+        resetSettings: function() {
             // Reset config to defaults (except in mourning period)
             if (!this.state.inMourningPeriod) {
                 this.config.display = {
@@ -407,6 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.showNotification('Settings Reset', 'Your settings have been reset to default.');
         },
         
+        // Load user settings from localStorage
         loadUserSettings: function() {
             try {
                 const savedSettings = localStorage.getItem('sacredRosarySettings');
@@ -442,52 +564,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error("Error loading user settings:", error);
                 // Use default settings
             }
-        },
-        
-        checkMourningPeriod: function() {
-            if (!this.config.admin || !this.config.admin.mourning || !this.config.admin.mourning.enabled) {
-                return false;
-            }
-            
-            const mourningSettings = this.config.admin.mourning;
-            const today = new Date();
-            let startDate = null;
-            let endDate = null;
-            
-            if (mourningSettings.startDate) {
-                startDate = new Date(mourningSettings.startDate);
-            }
-            
-            if (mourningSettings.endDate) {
-                endDate = new Date(mourningSettings.endDate);
-                // Set to end of day
-                endDate.setHours(23, 59, 59, 999);
-            }
-            
-            const isInMourningPeriod = (!startDate || today >= startDate) && 
-                                       (!endDate || today <= endDate);
-            
-            if (isInMourningPeriod) {
-                console.log("Site is in mourning mode");
-                
-                // Apply mourning theme - this overrides user preferences
-                if (mourningSettings.overrideUserTheme) {
-                    this.applyTheme('mourning');
-                    
-                    // Flag that we're in mourning mode so theme can't be changed by user
-                    this.state.inMourningPeriod = true;
-                }
-                
-                // Show announcement banner if enabled
-                if (mourningSettings.showBanner && this.elements.mourningAnnouncement) {
-                    document.getElementById('mourning-message').textContent = mourningSettings.message;
-                    this.elements.mourningAnnouncement.classList.add('visible');
-                }
-                
-                return true;
-            }
-            
-            return false;
         },
         
         // Set language
@@ -643,7 +719,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     autoplay: false,
                     preload: false,
                     onend: () => {
-                        if (this.state.isAutoAdvanceEnabled && this.state.isPlaying) {
+                        if (this.state.isPlaying) {
                             setTimeout(() => {
                                 this.nextPrayer();
                             }, this.config.prayer.autoAdvanceDelay);
@@ -801,12 +877,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.updatePrayerDisplay();
                 
                 // Start auto-advance timer
-                if (this.state.isAutoAdvanceEnabled) {
-                    this.startPrayerTimer();
-                }
+                this.startPrayerTimer();
             }, this.config.theme.animations.transitionSpeed);
         },
         
+        // Start prayer auto-advance timer (based on prayer audio duration + meditation time)
         startPrayerTimer: function() {
             if (!this.state.isPlaying) return;
             
@@ -887,7 +962,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.elements.prayerScroll.style.opacity = '1';
                 
                 // Start auto-advance timer if needed
-                if (this.state.isPlaying && this.state.isAutoAdvanceEnabled) {
+                if (this.state.isPlaying) {
                     this.startPrayerTimer();
                 }
             }, 300);
@@ -1025,10 +1100,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.state.isPlaying) {
                 this.elements.playBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
                 
-                // Start auto-advance timer if enabled
-                if (this.state.isAutoAdvanceEnabled) {
-                    this.startPrayerTimer();
-                }
+                // Start auto-advance timer
+                this.startPrayerTimer();
             } else {
                 this.elements.playBtn.innerHTML = '<i class="fas fa-play"></i> Play';
                 
