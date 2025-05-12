@@ -57,112 +57,76 @@
         </div>
     </div>
 
-    <!-- Settings menu (hidden by default) -->
-    <div id="settings-panel" class="settings-panel">
-        <div class="settings-header">
-            <h2>Settings</h2>
-            <button id="settings-close-btn" class="settings-close-btn">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="settings-content">
-            <div class="settings-section">
-                <h3>Display</h3>
-                <div class="setting-item">
-                    <label for="theme-select">Theme</label>
-                    <select id="theme-select">
-                        <option value="default">Default</option>
-                        <option value="dark">Dark</option>
-                        <option value="light">Light</option>
-                        <option value="sepia">Sepia</option>
-                        <option value="mourning">Mourning</option>
-                    </select>
-                </div>
-                <div class="setting-item">
-                    <label for="font-size">Font Size</label>
-                    <div class="range-with-value">
-                        <input type="range" id="font-size" min="80" max="120" value="100">
-                        <span id="font-size-value">100%</span>
-                    </div>
-                </div>
+    <!-- Updated Settings Menu (Replace the entire settings panel in index.html) -->
+<div id="settings-panel" class="settings-panel">
+    <div class="settings-header">
+        <h2>Settings</h2>
+        <button id="settings-close-btn" class="settings-close-btn">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="settings-content">
+        <div class="settings-section">
+            <h3>Display</h3>
+            <div class="setting-item">
+                <label for="theme-select">Theme</label>
+                <select id="theme-select">
+                    <option value="default">Default</option>
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <option value="sepia">Sepia</option>
+                </select>
             </div>
-            
-            <div class="settings-section">
-                <h3>Audio</h3>
-                <div class="setting-item">
-                    <label for="bg-music-toggle">Background Music</label>
+        </div>
+        
+        <div class="settings-section">
+            <h3>Audio</h3>
+            <div class="setting-item">
+                <label for="bg-music-toggle">Background Music</label>
+                <div class="toggle-container">
                     <label class="switch">
                         <input type="checkbox" id="bg-music-toggle" checked>
                         <span class="slider round"></span>
                     </label>
                 </div>
-                <div class="setting-item">
-                    <label for="bg-music-volume">Music Volume</label>
-                    <div class="range-with-value">
-                        <input type="range" id="bg-music-volume" min="0" max="100" value="30">
-                        <span id="bg-music-volume-value">30%</span>
-                    </div>
+            </div>
+            <div class="setting-item">
+                <label for="bg-music-volume">Music Volume</label>
+                <div class="range-with-value">
+                    <input type="range" id="bg-music-volume" min="0" max="100" value="30">
+                    <span id="bg-music-volume-value">30%</span>
                 </div>
-                <div class="setting-item">
-                    <label for="effects-toggle">Sound Effects</label>
+            </div>
+            <div class="setting-item">
+                <label for="effects-toggle">Sound Effects</label>
+                <div class="toggle-container">
                     <label class="switch">
                         <input type="checkbox" id="effects-toggle" checked>
                         <span class="slider round"></span>
                     </label>
                 </div>
             </div>
-            
-            <div class="settings-section mourning-settings">
-                <h3>Mourning Mode</h3>
-                <div class="setting-item">
-                    <label for="mourning-toggle">Enable Mourning Mode</label>
-                    <label class="switch">
-                        <input type="checkbox" id="mourning-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="mourning-details" style="display: none;">
-                    <div class="setting-item">
-                        <label for="mourning-message-input">Mourning Message</label>
-                        <textarea id="mourning-message-input" rows="3" placeholder="Enter mourning message here..."></textarea>
-                    </div>
-                    <div class="setting-item">
-                        <label for="mourning-start-date">Start Date</label>
-                        <input type="date" id="mourning-start-date">
-                    </div>
-                    <div class="setting-item">
-                        <label for="mourning-end-date">End Date</label>
-                        <input type="date" id="mourning-end-date">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="settings-section">
-                <h3>Prayer Experience</h3>
-                <div class="setting-item">
-                    <label for="auto-advance-toggle">Auto-advance Prayers</label>
-                    <label class="switch">
-                        <input type="checkbox" id="auto-advance-toggle" checked>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="setting-item">
-                    <label for="meditation-duration">Meditation Duration</label>
-                    <select id="meditation-duration">
-                        <option value="none">None</option>
-                        <option value="short" selected>Short</option>
-                        <option value="medium">Medium</option>
-                        <option value="long">Long</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="settings-actions">
-                <button id="settings-save-btn" class="settings-save-btn">Save Settings</button>
-                <button id="settings-reset-btn" class="settings-reset-btn">Reset to Default</button>
+        </div>
+        
+        <div class="settings-section">
+            <h3>Prayer Experience</h3>
+            <div class="setting-item">
+                <label for="meditation-duration">Meditation Duration</label>
+                <select id="meditation-duration">
+                    <option value="none">None</option>
+                    <option value="short" selected>Short</option>
+                    <option value="medium">Medium</option>
+                    <option value="long">Long</option>
+                </select>
             </div>
         </div>
+        
+        <div class="settings-actions">
+            <button id="settings-save-btn" class="settings-save-btn">Save Settings</button>
+            <button id="settings-reset-btn" class="settings-reset-btn">Reset to Default</button>
+        </div>
     </div>
+</div>
 
     <!-- Application container -->
     <div class="app-container">
