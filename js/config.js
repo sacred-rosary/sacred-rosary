@@ -136,10 +136,10 @@ const ROSARY_CONFIG = {
     admin: {
         // Mourning Mode Settings
         mourning: {
-            enabled: false,              // Set to true to enable mourning mode site-wide
-            message: "We are in a period of mourning for Pope Francis.",  // Change to your specific message
-            startDate: "2025-01-01",     // Format: YYYY-MM-DD (when mourning begins)
-            endDate: "2025-01-09",       // Format: YYYY-MM-DD (when mourning ends)
+            enabled: true,              // Set to true to enable mourning mode site-wide
+            message: "We are in a month of mourning for Pope Francis. Please pray for the repose of his soul.",  // Change to your specific message
+            startDate: "2025-04-21",     // Format: YYYY-MM-DD (when mourning begins)
+            endDate: "2025-05-21",       // Format: YYYY-MM-DD (when mourning ends)
             overrideUserTheme: true,     // If true, forces black theme even if user selected another theme
             showBanner: true             // Whether to show the announcement banner
         },
