@@ -3,29 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Prevent caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>The Sacred Rosary</title>
     
     <!-- Custom fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.js" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=1.1">
     
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
     
     <!-- App Configuration and Data -->
-    <script src="js/config.js"></script>
-    <script src="js/prayers-en.js"></script>
-    <script src="js/prayers-es.js"></script>
+    <script src="js/config.js?v=1.1"></script>
+    <script src="js/prayers-en.js?v=1.1"></script>
+    <script src="js/prayers-es.js?v=1.1"></script>
     
-    <!-- Main app script -->
-    <script defer src="js/app.js"></script>
+    <!-- Main app script with version parameter to prevent caching -->
+    <script defer src="js/app.js?v=1.1"></script>
 </head>
 <body>
     <!-- Loading overlay -->
@@ -43,14 +46,120 @@
         </div>
     </div>
 
-    <!-- Date confirmation dialog -->
-    <div class="date-confirmation-dialog">
-        <div class="date-confirmation-content">
-            <h2>Confirm Date</h2>
-            <p>Today is <span id="current-date"></span>.</p>
-            <p>The liturgical season is <span id="liturgical-season"></span>.</p>
-            <div class="date-confirmation-buttons">
-                <button id="date-confirm-button">Confirm</button>
+    <!-- Mourning announcement (hidden by default) -->
+    <div id="mourning-announcement" class="mourning-announcement">
+        <div class="mourning-content">
+            <h2>In Memoriam</h2>
+            <p id="mourning-message">We are in a period of mourning.</p>
+            <button id="mourning-close-btn" class="mourning-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings menu (hidden by default) -->
+    <div id="settings-panel" class="settings-panel">
+        <div class="settings-header">
+            <h2>Settings</h2>
+            <button id="settings-close-btn" class="settings-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section">
+                <h3>Display</h3>
+                <div class="setting-item">
+                    <label for="theme-select">Theme</label>
+                    <select id="theme-select">
+                        <option value="default">Default</option>
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="sepia">Sepia</option>
+                        <option value="mourning">Mourning</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="font-size">Font Size</label>
+                    <div class="range-with-value">
+                        <input type="range" id="font-size" min="80" max="120" value="100">
+                        <span id="font-size-value">100%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Audio</h3>
+                <div class="setting-item">
+                    <label for="bg-music-toggle">Background Music</label>
+                    <label class="switch">
+                        <input type="checkbox" id="bg-music-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label for="bg-music-volume">Music Volume</label>
+                    <div class="range-with-value">
+                        <input type="range" id="bg-music-volume" min="0" max="100" value="30">
+                        <span id="bg-music-volume-value">30%</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label for="effects-toggle">Sound Effects</label>
+                    <label class="switch">
+                        <input type="checkbox" id="effects-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-section mourning-settings">
+                <h3>Mourning Mode</h3>
+                <div class="setting-item">
+                    <label for="mourning-toggle">Enable Mourning Mode</label>
+                    <label class="switch">
+                        <input type="checkbox" id="mourning-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="mourning-details" style="display: none;">
+                    <div class="setting-item">
+                        <label for="mourning-message-input">Mourning Message</label>
+                        <textarea id="mourning-message-input" rows="3" placeholder="Enter mourning message here..."></textarea>
+                    </div>
+                    <div class="setting-item">
+                        <label for="mourning-start-date">Start Date</label>
+                        <input type="date" id="mourning-start-date">
+                    </div>
+                    <div class="setting-item">
+                        <label for="mourning-end-date">End Date</label>
+                        <input type="date" id="mourning-end-date">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Prayer Experience</h3>
+                <div class="setting-item">
+                    <label for="auto-advance-toggle">Auto-advance Prayers</label>
+                    <label class="switch">
+                        <input type="checkbox" id="auto-advance-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label for="meditation-duration">Meditation Duration</label>
+                    <select id="meditation-duration">
+                        <option value="none">None</option>
+                        <option value="short" selected>Short</option>
+                        <option value="medium">Medium</option>
+                        <option value="long">Long</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="settings-actions">
+                <button id="settings-save-btn" class="settings-save-btn">Save Settings</button>
+                <button id="settings-reset-btn" class="settings-reset-btn">Reset to Default</button>
             </div>
         </div>
     </div>
@@ -103,7 +212,12 @@
                     <i class="fas fa-pray"></i> Begin Prayer
                 </button>
                 
-                <p class="app-version">Version 1.0.0</p>
+                <div class="landing-footer">
+                    <p class="app-version">Version 1.1.0</p>
+                    <button id="settings-toggle-btn" class="settings-toggle-btn">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -123,15 +237,19 @@
                     
                     <div class="rosary-progress">
                         <h3 class="progress-title">Opening Prayers</h3>
-                        <div class="decade-indicator">
-                            <div class="decade-dot active"></div>
-                            <div class="decade-dot"></div>
-                            <div class="decade-dot"></div>
-                            <div class="decade-dot"></div>
-                            <div class="decade-dot"></div>
+                        
+                        <!-- Simplified progress indicator -->
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <div class="progress-text">Prayer 1 of 61</div>
                         </div>
-                        <div class="bead-indicator">
-                            <!-- Will be populated by JS -->
+                        
+                        <!-- Visual prayer reminder -->
+                        <div class="current-prayer-type">
+                            <span class="prayer-icon"><i class="fas fa-cross"></i></span>
+                            <span class="prayer-name">Sign of the Cross</span>
                         </div>
                     </div>
                 </div>
@@ -141,7 +259,7 @@
                         <i class="fas fa-chevron-left"></i> Previous
                     </button>
                     <button class="prayer-btn play-btn">
-                        <i class="fas fa-play"></i> Play
+                        <i class="fas fa-pause"></i> Pause
                     </button>
                     <button class="prayer-btn next-btn">
                         Next <i class="fas fa-chevron-right"></i>
@@ -158,6 +276,11 @@
                         <p class="mystery-fruits">Fruit of the Mystery: Humility</p>
                     </div>
                 </div>
+                
+                <!-- Settings button (visible in prayer mode) -->
+                <button id="prayer-settings-btn" class="prayer-settings-btn">
+                    <i class="fas fa-cog"></i>
+                </button>
             </div>
         </div>
         
@@ -170,13 +293,6 @@
                 </button>
             </div>
             <p class="notification-message">Notification message goes here.</p>
-        </div>
-        
-        <!-- Audio controls (hidden) -->
-        <div class="audio-controls" style="display: none;">
-            <button id="music-toggle">
-                <i class="fas fa-volume-up"></i>
-            </button>
         </div>
     </div>
 </body>
