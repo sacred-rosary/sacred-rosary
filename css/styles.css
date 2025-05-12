@@ -989,3 +989,411 @@ button {
         font-size: var(--font-size-xl);
     }
 }
+
+/* Add these styles to your styles.css file */
+
+/* Settings Panel */
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 380px;
+    height: 100vh;
+    background-color: var(--overlay-color);
+    backdrop-filter: blur(10px);
+    border-left: 1px solid var(--border-color);
+    z-index: var(--z-modal);
+    transition: right var(--transition-medium) ease;
+    overflow-y: auto;
+    padding: 0;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.settings-panel.visible {
+    right: 0;
+}
+
+.settings-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+}
+
+.settings-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+}
+
+.settings-content {
+    padding: 1.5rem;
+}
+
+.settings-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+}
+
+.settings-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: var(--font-size-md);
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.setting-item label {
+    flex: 1;
+}
+
+.setting-item select,
+.setting-item input[type="text"],
+.setting-item input[type="date"],
+.setting-item textarea {
+    flex: 1;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-small);
+    color: var(--text-color);
+    padding: 0.5rem;
+    font-family: var(--font-secondary);
+}
+
+.setting-item textarea {
+    width: 100%;
+    resize: vertical;
+}
+
+.range-with-value {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.range-with-value input[type="range"] {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.range-with-value span {
+    width: 40px;
+    text-align: right;
+}
+
+/* Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: var(--text-color);
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Settings action buttons */
+.settings-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.settings-save-btn,
+.settings-reset-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius-small);
+    font-family: var(--font-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast) ease;
+}
+
+.settings-save-btn {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+}
+
+.settings-reset-btn {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.settings-save-btn:hover,
+.settings-reset-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Landing page settings button */
+.landing-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.settings-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: all var(--transition-fast) ease;
+}
+
+.settings-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Prayer page settings button */
+.prayer-settings-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all var(--transition-fast) ease;
+}
+
+.prayer-settings-btn:hover {
+    transform: translateY(-2px) rotate(30deg);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Improved Progress Indicator */
+.progress-container {
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background-color: rgba(210, 180, 140, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--accent-color);
+    width: 0%; /* Will be set by JS */
+    transition: width 0.5s ease;
+    box-shadow: 0 0 5px var(--glow-color);
+}
+
+.progress-text {
+    text-align: center;
+    font-size: var(--font-size-xs);
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.current-prayer-type {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-small);
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.prayer-icon {
+    margin-right: 0.5rem;
+    color: var(--accent-color);
+}
+
+.prayer-name {
+    font-family: var(--font-primary);
+    font-size: var(--font-size-xs);
+}
+
+/* Mourning Mode */
+.mourning-announcement {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #000;
+    color: #fff;
+    z-index: var(--z-tooltip);
+    display: none;
+}
+
+.mourning-announcement.visible {
+    display: block;
+}
+
+.mourning-content {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.mourning-content h2 {
+    margin: 0;
+    margin-right: 1rem;
+    font-size: var(--font-size-md);
+    color: #fff;
+}
+
+.mourning-content p {
+    margin: 0;
+}
+
+.mourning-close-btn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: var(--font-size-md);
+}
+
+/* Theme: Mourning */
+body.theme-mourning {
+    --primary-color: #4a4a4a;
+    --secondary-color: #333333;
+    --accent-color: #999999;
+    --text-color: #f5f5f5;
+    --background-color: #000000;
+    --overlay-color: rgba(0, 0, 0, 0.9);
+    --border-color: rgba(100, 100, 100, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.8);
+    --glow-color: rgba(150, 150, 150, 0.3);
+}
+
+body.theme-mourning .app-logo path,
+body.theme-mourning .app-logo circle {
+    stroke: #999999;
+}
+
+body.theme-mourning .app-logo circle[fill]:not([fill="none"]) {
+    fill: #999999;
+}
+
+/* Other themes */
+body.theme-dark {
+    --primary-color: #5D5D8D;
+    --secondary-color: #30305D;
+    --accent-color: #9D9DCD;
+    --text-color: #F5F5FF;
+    --background-color: #1A1A2F;
+    --overlay-color: rgba(26, 26, 47, 0.85);
+    --border-color: rgba(157, 157, 205, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --glow-color: rgba(157, 157, 255, 0.3);
+}
+
+body.theme-light {
+    --primary-color: #8D785D;
+    --secondary-color: #5D4E30;
+    --accent-color: #D3B88C;
+    --text-color: #1A1A1A;
+    --background-color: #F5F5F0;
+    --overlay-color: rgba(245, 245, 240, 0.85);
+    --border-color: rgba(141, 120, 93, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --glow-color: rgba(211, 184, 140, 0.4);
+}
+
+body.theme-sepia {
+    --primary-color: #8D5D3B;
+    --secondary-color: #5D3D20;
+    --accent-color: #D38D58;
+    --text-color: #33200D;
+    --background-color: #F5E8D8;
+    --overlay-color: rgba(245, 232, 216, 0.85);
+    --border-color: rgba(141, 93, 59, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --glow-color: rgba(211, 141, 88, 0.4);
+}
