@@ -67,7 +67,7 @@ const ROSARY_CONFIG = {
         backgroundMusic: {
             enabled: true,
             volume: 0.3,
-            src: "https://raw.githubusercontent.com/sacred-rosary/sacred-rosary/refs/heads/main/assets/audio/background_piano.mp3"
+            src: "assets/audio/background_piano.mp3"
         },
         prayerAudio: {
             enabled: true,
