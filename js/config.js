@@ -2,7 +2,7 @@
 const ROSARY_CONFIG = {
     // App Information
     appName: "The Sacred Rosary",
-    appVersion: "1.1.12",
+    appVersion: "1.1.13",
     
     // Visual Theme
     theme: {
@@ -136,7 +136,7 @@ const ROSARY_CONFIG = {
     admin: {
         // Mourning Mode Settings
         mourning: {
-            enabled: true,              // Set to true to enable mourning mode site-wide
+            enabled: false,              // Set to true to enable mourning mode site-wide
             message: "We are in a month of mourning for Pope Francis. Please pray for the repose of his soul.",  // Change to your specific message
             startDate: "2025-04-21",     // Format: YYYY-MM-DD (when mourning begins)
             endDate: "2025-05-21",       // Format: YYYY-MM-DD (when mourning ends)
@@ -145,7 +145,7 @@ const ROSARY_CONFIG = {
         },
         
         // Site Version - Increment this to force cache refresh
-        version: "1.1.0",
+        version: "1.1.13",
         
         // Site Messages - Announcements that will show to all users
         announcements: [
