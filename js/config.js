@@ -150,13 +150,13 @@ const ROSARY_CONFIG = {
         // Site Messages - Announcements that will show to all users
         announcements: [
             // Uncomment and edit to show an announcement
-            // {
-            //     enabled: false,
-            //     title: "Site Maintenance",
-            //     message: "The Sacred Rosary will be undergoing maintenance on May 15.",
-            //     startDate: "2025-05-10",
-            //     endDate: "2025-05-14"
-            // }
+             {
+                 enabled: true,
+                 title: "Site Maintenance",
+                 message: "The Sacred Rosary will be undergoing maintenance on May 15.",
+                 startDate: "2025-05-10",
+                 endDate: "2025-05-14"
+             }
         ]
     }
 };
