@@ -2,7 +2,7 @@
 const ROSARY_CONFIG = {
     // App Information
     appName: "The Sacred Rosary",
-    appVersion: "1.1.0",
+    appVersion: "1.1.10",
     
     // Visual Theme
     theme: {
