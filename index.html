@@ -16,23 +16,22 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css?v=1.1">
+    <link rel="stylesheet" href="css/styles.css?v=1.2">
     
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
     
     <!-- App Configuration and Data -->
-    <script src="js/config.js?v=1.1"></script>
-    <script src="js/prayers-en.js?v=1.1"></script>
-    <script src="js/prayers-es.js?v=1.1"></script>
+    <script src="js/config.js?v=1.2"></script>
+    <script src="js/prayers-en.js?v=1.2"></script>
+    <script src="js/prayers-es.js?v=1.2"></script>
     
     <!-- Main app script with version parameter to prevent caching -->
-    <script defer src="js/app.js?v=1.1"></script>
+    <script defer src="js/app.js?v=1.2"></script>
 </head>
 <body>
     <!-- Loading overlay -->
@@ -61,76 +60,76 @@
         </div>
     </div>
 
-    <!-- Updated Settings Menu (Replace the entire settings panel in index.html) -->
-<div id="settings-panel" class="settings-panel">
-    <div class="settings-header">
-        <h2>Settings</h2>
-        <button id="settings-close-btn" class="settings-close-btn">
-            <i class="fas fa-times"></i>
-        </button>
+    <!-- Settings Menu -->
+    <div id="settings-panel" class="settings-panel">
+        <div class="settings-header">
+            <h2>Settings</h2>
+            <button id="settings-close-btn" class="settings-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section">
+                <h3>Display</h3>
+                <div class="setting-item">
+                    <label for="theme-select">Theme</label>
+                    <select id="theme-select">
+                        <option value="default">Default</option>
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="sepia">Sepia</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Audio</h3>
+                <div class="setting-item">
+                    <label for="bg-music-toggle">Background Music</label>
+                    <div class="toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" id="bg-music-toggle" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label for="bg-music-volume">Music Volume</label>
+                    <div class="range-with-value">
+                        <input type="range" id="bg-music-volume" min="0" max="100" value="30">
+                        <span id="bg-music-volume-value">30%</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label for="effects-toggle">Sound Effects</label>
+                    <div class="toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" id="effects-toggle" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Prayer Experience</h3>
+                <div class="setting-item">
+                    <label for="meditation-duration">Meditation Duration</label>
+                    <select id="meditation-duration">
+                        <option value="none">None</option>
+                        <option value="short" selected>Short</option>
+                        <option value="medium">Medium</option>
+                        <option value="long">Long</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="settings-actions">
+                <button id="settings-save-btn" class="settings-save-btn">Save Settings</button>
+                <button id="settings-reset-btn" class="settings-reset-btn">Reset to Default</button>
+            </div>
+        </div>
     </div>
-    <div class="settings-content">
-        <div class="settings-section">
-            <h3>Display</h3>
-            <div class="setting-item">
-                <label for="theme-select">Theme</label>
-                <select id="theme-select">
-                    <option value="default">Default</option>
-                    <option value="dark">Dark</option>
-                    <option value="light">Light</option>
-                    <option value="sepia">Sepia</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="settings-section">
-            <h3>Audio</h3>
-            <div class="setting-item">
-                <label for="bg-music-toggle">Background Music</label>
-                <div class="toggle-container">
-                    <label class="switch">
-                        <input type="checkbox" id="bg-music-toggle" checked>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
-            <div class="setting-item">
-                <label for="bg-music-volume">Music Volume</label>
-                <div class="range-with-value">
-                    <input type="range" id="bg-music-volume" min="0" max="100" value="30">
-                    <span id="bg-music-volume-value">30%</span>
-                </div>
-            </div>
-            <div class="setting-item">
-                <label for="effects-toggle">Sound Effects</label>
-                <div class="toggle-container">
-                    <label class="switch">
-                        <input type="checkbox" id="effects-toggle" checked>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        
-        <div class="settings-section">
-            <h3>Prayer Experience</h3>
-            <div class="setting-item">
-                <label for="meditation-duration">Meditation Duration</label>
-                <select id="meditation-duration">
-                    <option value="none">None</option>
-                    <option value="short" selected>Short</option>
-                    <option value="medium">Medium</option>
-                    <option value="long">Long</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="settings-actions">
-            <button id="settings-save-btn" class="settings-save-btn">Save Settings</button>
-            <button id="settings-reset-btn" class="settings-reset-btn">Reset to Default</button>
-        </div>
-    </div>
-</div>
 
     <!-- Application container -->
     <div class="app-container">
@@ -200,7 +199,6 @@
                     <div class="rosary-progress">
                         <h3 class="progress-title">Opening Prayers</h3>
                         
-                        <!-- Simplified progress indicator -->
                         <div class="progress-container">
                             <div class="progress-bar">
                                 <div class="progress-fill"></div>
@@ -208,7 +206,6 @@
                             <div class="progress-text">Prayer 1 of 61</div>
                         </div>
                         
-                        <!-- Visual prayer reminder -->
                         <div class="current-prayer-type">
                             <span class="prayer-icon"><i class="fas fa-cross"></i></span>
                             <span class="prayer-name">Sign of the Cross</span>
@@ -229,17 +226,16 @@
                 </div>
             </div>
             
-            <!-- Right side section (placeholder for future content) -->
-            <div class="visual-section">
-                <div class="placeholder-content">
-                    <div class="mystery-info">
-                        <h3 class="mystery-title">The Annunciation</h3>
-                        <p class="mystery-description">The Angel Gabriel announces to Mary that she is to be the Mother of God.</p>
-                        <p class="mystery-fruits">Fruit of the Mystery: Humility</p>
-                    </div>
+            <!-- 3D Rosary Section -->
+            <div class="model-section">
+                <div id="model-container" class="model-container">
+                    <canvas id="model-canvas"></canvas>
                 </div>
-                
-                <!-- Settings button (visible in prayer mode) -->
+                <div id="mystery-info" class="mystery-info">
+                    <h3 class="mystery-title">The Annunciation</h3>
+                    <p class="mystery-description">The Angel Gabriel announces to Mary that she is to be the Mother of God.</p>
+                    <p class="mystery-fruits">Fruit of the Mystery: Humility</p>
+                </div>
                 <button id="prayer-settings-btn" class="prayer-settings-btn">
                     <i class="fas fa-cog"></i>
                 </button>
