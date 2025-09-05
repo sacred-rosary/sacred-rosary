@@ -422,9 +422,10 @@ button {
 }
 
 #model-canvas {
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: 100% !important;
     touch-action: none;
+    display: block;
 }
 
 /* Mystery info panel */
@@ -990,8 +991,6 @@ button {
     }
 }
 
-/* Add these styles to your styles.css file */
-
 /* Settings Panel */
 .settings-panel {
     position: fixed;
@@ -1099,7 +1098,6 @@ button {
     text-align: right;
 }
 
-/* Fixed Toggle Switch CSS */
 .toggle-container {
     display: flex;
     justify-content: flex-end;
@@ -1156,7 +1154,6 @@ input:focus + .slider {
 input:checked + .slider:before {
     transform: translateX(26px);
 }
-}
 
 .slider.round {
     border-radius: 24px;
@@ -1166,7 +1163,6 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
-/* Settings action buttons */
 .settings-actions {
     display: flex;
     justify-content: space-between;
@@ -1201,7 +1197,6 @@ input:checked + .slider:before {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Landing page settings button */
 .landing-footer {
     display: flex;
     flex-direction: column;
@@ -1226,7 +1221,6 @@ input:checked + .slider:before {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Prayer page settings button */
 .prayer-settings-btn {
     position: absolute;
     bottom: 20px;
@@ -1243,6 +1237,7 @@ input:checked + .slider:before {
     cursor: pointer;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     transition: all var(--transition-fast) ease;
+    z-index: var(--z-higher);
 }
 
 .prayer-settings-btn:hover {
@@ -1250,7 +1245,6 @@ input:checked + .slider:before {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Improved Progress Indicator */
 .progress-container {
     width: 100%;
     margin: 1rem 0;
@@ -1303,7 +1297,6 @@ input:checked + .slider:before {
     font-size: var(--font-size-xs);
 }
 
-/* Mourning Mode */
 .mourning-announcement {
     position: fixed;
     top: 0;
@@ -1350,7 +1343,6 @@ input:checked + .slider:before {
     font-size: var(--font-size-md);
 }
 
-/* Theme: Mourning */
 body.theme-mourning {
     --primary-color: #4a4a4a;
     --secondary-color: #333333;
@@ -1372,7 +1364,6 @@ body.theme-mourning .app-logo circle[fill]:not([fill="none"]) {
     fill: #999999;
 }
 
-/* Other themes */
 body.theme-dark {
     --primary-color: #5D5D8D;
     --secondary-color: #30305D;
