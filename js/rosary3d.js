@@ -61,7 +61,7 @@ export function zoom(type) {
 // --- Internal 3D Setup ---
 
 function setupScene() {
-    const container = document.querySelector('.visual-section');
+    const container = document.querySelector('.model-section');
     if (!container) return;
 
     scene = new THREE.Scene();
