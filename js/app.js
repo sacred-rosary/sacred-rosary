@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Start loading assets
             this.loadAssets();
-            init3D();
             
             // Make the object available globally for debugging
             window.SacredRosary = this;
@@ -859,6 +858,8 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 this.elements.landingPage.style.display = 'none';
                 this.elements.mainContent.style.display = 'flex';
+
+                init3D();
                 
                 // Auto-start playing
                 this.state.isPlaying = true;
