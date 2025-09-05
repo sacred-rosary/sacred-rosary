@@ -1204,46 +1204,37 @@ input:checked + .slider:before {
     margin-top: 1rem;
 }
 
-.settings-toggle-btn {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-medium);
-    color: var(--text-color);
-    padding: 0.5rem 1rem;
-    font-family: var(--font-primary);
-    font-size: var(--font-size-xs);
-    cursor: pointer;
-    margin-top: 0.5rem;
-    transition: all var(--transition-fast) ease;
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: -400px; /* Hidden by default */
+    width: 380px;
+    height: 100vh;
+    background-color: var(--overlay-color);
+    backdrop-filter: blur(10px);
+    border-left: 1px solid var(--border-color);
+    z-index: var(--z-overlay); /* VERY HIGH Z-INDEX */
+    transition: right var(--transition-medium) ease;
 }
-
-.settings-toggle-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
+.settings-panel.visible { right: 0; }
+.settings-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+.settings-close-btn { background: transparent; border: none; color: var(--text-color); font-size: var(--font-size-lg); cursor: pointer; }
+.settings-content { padding: 1.5rem; }
 .prayer-settings-btn {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    border: none;
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: none;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: all var(--transition-fast) ease;
-    z-index: var(--z-higher);
+    z-index: var(--z-modal); /* ENSURE BUTTON IS CLICKABLE */
+    transition: transform var(--transition-fast);
 }
-
-.prayer-settings-btn:hover {
-    transform: translateY(-2px) rotate(30deg);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-}
+.prayer-settings-btn:hover { transform: rotate(30deg); }
 
 .progress-container {
     width: 100%;
