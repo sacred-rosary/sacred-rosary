@@ -1,3 +1,4 @@
+import { init3D, highlightBead, zoom, beadMap } from './rosary3d.js';
 // Sacred Rosary - Main Application
 document.addEventListener('DOMContentLoaded', function() {
     // Main application object
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Start loading assets
             this.loadAssets();
+            init3D();
             
             // Make the object available globally for debugging
             window.SacredRosary = this;
@@ -781,53 +783,42 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         },
         
-        // Create the rosary sequence
         createRosarySequence: function() {
             const sequence = [];
             
-            // Start with the Sign of the Cross and Apostles' Creed
-            sequence.push({prayer: 'signOfCross', type: 'prayer', decade: null, bead: null});
-            sequence.push({prayer: 'apostlesCreed', type: 'prayer', decade: null, bead: null});
+            sequence.push({prayer: 'signOfCross', type: 'prayer', decade: null, beadIndex: beadMap.signOfCross});
+            sequence.push({prayer: 'apostlesCreed', type: 'prayer', decade: null, beadIndex: beadMap.apostlesCreed});
+            sequence.push({prayer: 'ourFather', type: 'prayer', decade: 0, beadIndex: beadMap.openingOurFather});
             
-            // First Our Father
-            sequence.push({prayer: 'ourFather', type: 'prayer', decade: 0, bead: 'opening-our-father'});
+            sequence.push({prayer: 'hailMary', type: 'prayer', decade: 0, beadIndex: beadMap.openingHailMary1, hailMaryNum: 0});
+            sequence.push({prayer: 'hailMary', type: 'prayer', decade: 0, beadIndex: beadMap.openingHailMary2, hailMaryNum: 1});
+            sequence.push({prayer: 'hailMary', type: 'prayer', decade: 0, beadIndex: beadMap.openingHailMary3, hailMaryNum: 2});
+        
+            sequence.push({prayer: 'gloryBe', type: 'prayer', decade: 0, beadIndex: beadMap.openingGloryBe});
             
-            // First three Hail Marys
-            for (let i = 0; i < 3; i++) {
-                sequence.push({prayer: 'hailMary', type: 'prayer', decade: 0, bead: `opening-hail-mary-${i+1}`});
-            }
-            
-            // Glory Be
-            sequence.push({prayer: 'gloryBe', type: 'prayer', decade: 0, bead: null});
-            
-            // Five decades
             for (let decade = 0; decade < 5; decade++) {
-                // Announce mystery
+                const decadeKey = `decade${decade + 1}`;
                 sequence.push({
                     type: 'mystery',
                     mysteryIndex: decade,
                     mysteryType: this.state.currentMysteryType,
-                    decade: decade+1,
-                    bead: null
+                    decade: decade + 1,
+                    beadIndex: beadMap[decadeKey].ourFather
                 });
                 
-                // Our Father
-                sequence.push({prayer: 'ourFather', type: 'prayer', decade: decade+1, bead: `decade-${decade+1}-our-father`});
+                sequence.push({prayer: 'ourFather', type: 'prayer', decade: decade + 1, beadIndex: beadMap[decadeKey].ourFather});
                 
-                // 10 Hail Marys
                 for (let bead = 0; bead < 10; bead++) {
-                    sequence.push({prayer: 'hailMary', type: 'prayer', decade: decade+1, bead: `decade-${decade+1}-hail-mary-${bead+1}`});
+                    sequence.push({prayer: 'hailMary', type: 'prayer', decade: decade + 1, beadIndex: beadMap[decadeKey].hailMarys[bead], hailMaryNum: bead});
                 }
                 
-                // Glory Be and Fatima Prayer
-                sequence.push({prayer: 'gloryBe', type: 'prayer', decade: decade+1, bead: null});
-                sequence.push({prayer: 'fatimaPrayer', type: 'prayer', decade: decade+1, bead: null});
+                sequence.push({prayer: 'gloryBe', type: 'prayer', decade: decade + 1, beadIndex: beadMap[decadeKey].gloryBeAndFatima});
+                sequence.push({prayer: 'fatimaPrayer', type: 'prayer', decade: decade + 1, beadIndex: beadMap[decadeKey].gloryBeAndFatima});
             }
             
-            // Conclude with Hail Holy Queen and final prayer
-            sequence.push({prayer: 'hailHolyQueen', type: 'prayer', decade: null, bead: null});
-            sequence.push({prayer: 'finalPrayer', type: 'prayer', decade: null, bead: null});
-            sequence.push({prayer: 'signOfCross', type: 'prayer', decade: null, bead: null});
+            sequence.push({prayer: 'hailHolyQueen', type: 'prayer', decade: null, beadIndex: -1}); // -1 means no bead is highlighted
+            sequence.push({prayer: 'finalPrayer', type: 'prayer', decade: null, beadIndex: -1});
+            sequence.push({prayer: 'signOfCross', type: 'prayer', decade: null, beadIndex: beadMap.signOfCross});
             
             this.state.rosarySequence = sequence;
             this.state.totalPrayers = sequence.length;
@@ -964,6 +955,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Start auto-advance timer if needed
                 if (this.state.isPlaying) {
                     this.startPrayerTimer();
+                }
+                
+                // Control the 3D Rosary
+                if (currentItem.beadIndex !== undefined) {
+                    highlightBead(currentItem.beadIndex);
+                } else {
+                    highlightBead(-1); // Highlight nothing
+                }
+                
+                // Handle camera zooms for immersive experience
+                if (currentItem.prayer === 'signOfCross' && this.state.currentPrayerIndex === 0) {
+                    zoom('out');
+                } else if (currentItem.type === 'mystery') {
+                    zoom('in');
+                } else if (currentItem.prayer === 'hailHolyQueen') {
+                    zoom('out');
                 }
             }, 300);
         },
