@@ -1,96 +1,1410 @@
 /* Sacred Rosary - Main Stylesheet */
 :root {
-    --primary-color: #8B6C42; --secondary-color: #5D4B35; --accent-color: #D2B48C; --text-color: #F5EFE0; --background-color: #1A150F; --overlay-color: rgba(26, 21, 15, 0.85); --border-color: rgba(210, 180, 140, 0.3); --shadow-color: rgba(0, 0, 0, 0.6); --glow-color: rgba(255, 200, 100, 0.4);
-    --transition-fast: 0.3s; --transition-medium: 0.6s; --transition-slow: 1s; --transition-very-slow: 2s;
-    --prayer-width: 40%; --model-width: 60%; --margin-standard: 2rem; --padding-standard: 2rem;
-    --border-radius-small: 8px; --border-radius-medium: 15px; --border-radius-large: 30px;
-    --font-primary: 'Cinzel', serif; --font-secondary: 'Cormorant Garamond', serif;
-    --font-size-xs: 0.875rem; --font-size-sm: 1rem; --font-size-md: 1.25rem; --font-size-lg: 1.5rem; --font-size-xl: 2rem; --font-size-2xl: 2.5rem; --font-size-3xl: 3rem; --font-size-4xl: 4rem;
-    --z-base: 1; --z-above: 10; --z-higher: 100; --z-modal: 1000; --z-overlay: 2000; --z-tooltip: 3000;
+    /* Default theme (from config.js - these will be set via JS) */
+    --primary-color: #8B6C42;
+    --secondary-color: #5D4B35;
+    --accent-color: #D2B48C;
+    --text-color: #F5EFE0;
+    --background-color: #1A150F;
+    --overlay-color: rgba(26, 21, 15, 0.85);
+    --border-color: rgba(210, 180, 140, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --glow-color: rgba(255, 200, 100, 0.4);
+    
+    /* Animation durations */
+    --transition-fast: 0.3s;
+    --transition-medium: 0.6s;
+    --transition-slow: 1s;
+    --transition-very-slow: 2s;
+    
+    /* Layout */
+    --prayer-width: 40%;
+    --model-width: 60%;
+    --margin-standard: 2rem;
+    --padding-standard: 2rem;
+    --border-radius-small: 8px;
+    --border-radius-medium: 15px;
+    --border-radius-large: 30px;
+    
+    /* Typography */
+    --font-primary: 'Cinzel', serif;
+    --font-secondary: 'Cormorant Garamond', serif;
+    --font-size-xs: 0.875rem;
+    --font-size-sm: 1rem;
+    --font-size-md: 1.25rem;
+    --font-size-lg: 1.5rem;
+    --font-size-xl: 2rem;
+    --font-size-2xl: 2.5rem;
+    --font-size-3xl: 3rem;
+    --font-size-4xl: 4rem;
+    
+    /* Z-index layers */
+    --z-base: 1;
+    --z-above: 10;
+    --z-higher: 100;
+    --z-modal: 1000;
+    --z-overlay: 2000;
+    --z-tooltip: 3000;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scrollbar-width: thin; scrollbar-color: var(--primary-color) transparent; }
-body { font-family: var(--font-secondary); background-color: var(--background-color); color: var(--text-color); height: 100vh; overflow: hidden; position: relative; line-height: 1.6; }
-::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 3px; }
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-primary); font-weight: 600; color: var(--accent-color); letter-spacing: 1px; line-height: 1.3; }
-button { cursor: pointer; font-family: var(--font-primary); }
-.app-container { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
-.background-effects { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: var(--z-base); pointer-events: none; }
-.gradient-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, rgba(26, 21, 15, 0.7) 0%, rgba(15, 12, 9, 0.9) 70%, rgba(10, 8, 6, 1) 100%); z-index: var(--z-base); }
-.vignette { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.5) 100%); z-index: calc(var(--z-base) + 2); }
-.candle-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, rgba(255, 220, 150, 0.05) 0%, transparent 70%); mix-blend-mode: overlay; z-index: calc(var(--z-base) + 3); animation: flicker 8s infinite alternate; }
-.main-content { position: relative; display: flex; width: 100%; height: 100vh; z-index: var(--z-above); display: none; }
-.prayer-section { position: relative; width: var(--prayer-width); height: 100%; overflow: hidden; display: flex; flex-direction: column; z-index: calc(var(--z-above) + 1); }
-.prayer-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--overlay-color); backdrop-filter: blur(8px); border-right: 1px solid var(--border-color); z-index: calc(var(--z-above) + 2); }
-.prayer-scroll { position: relative; flex: 1; overflow-y: auto; padding: var(--padding-standard); z-index: calc(var(--z-above) + 3); margin: 1rem; }
-.prayer-header { text-align: center; margin-bottom: 2rem; position: relative; }
-.prayer-title { font-size: var(--font-size-2xl); color: var(--accent-color); margin-bottom: 0.5rem; text-shadow: 0 0 10px var(--glow-color); position: relative; }
-.prayer-instructions { font-style: italic; margin: 1.5rem 0; opacity: 0.8; font-size: var(--font-size-md); }
-.prayer-text { font-size: var(--font-size-lg); line-height: 1.8; margin-bottom: 2rem; text-shadow: 0 0 5px var(--shadow-color); }
-.prayer-text p { margin-bottom: 1rem; }
-.prayer-controls { position: relative; display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 1.5rem; border-top: 1px solid var(--border-color); backdrop-filter: blur(8px); z-index: calc(var(--z-above) + 3); }
-.prayer-btn { background-color: var(--secondary-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: var(--border-radius-medium); padding: 0.75rem 1.5rem; font-family: var(--font-primary); font-size: var(--font-size-sm); letter-spacing: 1px; transition: all var(--transition-fast) ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 8px var(--shadow-color); }
-.prayer-btn:hover { background-color: var(--primary-color); box-shadow: 0 6px 12px var(--shadow-color), 0 0 15px var(--glow-color); transform: translateY(-2px); }
-.rosary-progress { position: relative; width: 100%; padding: 1rem 0; display: flex; flex-direction: column; align-items: center; margin-top: 2rem; margin-bottom: 1rem; }
-.progress-title { font-size: var(--font-size-md); margin-bottom: 1rem; color: var(--accent-color); }
-.model-section { position: relative; width: var(--model-width); height: 100%; z-index: calc(var(--z-above) + 1); }
-.model-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: calc(var(--z-above) + 2); }
-#model-canvas { width: 100% !important; height: 100% !important; touch-action: none; display: block; }
-.mystery-info { position: absolute; top: 20px; right: 20px; width: 300px; background-color: var(--overlay-color); border-radius: var(--border-radius-small); border: 1px solid var(--border-color); padding: 1.5rem; backdrop-filter: blur(8px); box-shadow: 0 10px 20px var(--shadow-color); z-index: calc(var(--z-above) + 3); transform: translateY(-10px); opacity: 0; transition: all var(--transition-medium) ease; pointer-events: none; }
-.mystery-info.visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
-.mystery-title { font-size: var(--font-size-lg); margin-bottom: 1rem; text-align: center; }
-.mystery-description { font-size: var(--font-size-sm); margin-bottom: 1rem; line-height: 1.6; }
-.mystery-fruits { font-size: var(--font-size-xs); font-style: italic; padding-top: 1rem; border-top: 1px solid var(--border-color); }
-.landing-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--background-color); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: var(--z-modal); transition: opacity var(--transition-slow) ease, transform var(--transition-slow) ease; }
-.landing-content { max-width: 800px; text-align: center; padding: 2rem; background-color: var(--overlay-color); border-radius: var(--border-radius-large); border: 1px solid var(--border-color); backdrop-filter: blur(10px); box-shadow: 0 20px 40px var(--shadow-color); }
-.app-title { font-size: var(--font-size-3xl); margin-bottom: 1rem; letter-spacing: 4px; text-shadow: 0 0 20px var(--glow-color); }
-.rosary-selection-label { font-size: var(--font-size-lg); margin-bottom: 1rem; }
-.mystery-selection { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; }
-.mystery-btn { background-color: transparent; color: var(--text-color); border: 1px solid var(--border-color); border-radius: var(--border-radius-medium); padding: 0.75rem 1.5rem; font-family: var(--font-primary); font-size: var(--font-size-sm); transition: all var(--transition-fast) ease; box-shadow: 0 4px 8px var(--shadow-color); }
-.mystery-btn:hover { background-color: var(--secondary-color); transform: translateY(-2px); box-shadow: 0 6px 12px var(--shadow-color), 0 0 10px var(--glow-color); }
-.mystery-btn.active { background-color: var(--primary-color); box-shadow: 0 4px 12px var(--shadow-color), 0 0 15px var(--glow-color); }
-.start-btn { background-color: var(--primary-color); color: var(--text-color); border: none; border-radius: var(--border-radius-large); padding: 1rem 2.5rem; font-family: var(--font-primary); font-size: var(--font-size-lg); letter-spacing: 2px; transition: all var(--transition-fast) ease; box-shadow: 0 8px 16px var(--shadow-color); }
-.start-btn:hover { background-color: var(--secondary-color); transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 24px var(--shadow-color), 0 0 20px var(--glow-color); }
-.loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--background-color); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: var(--z-overlay); transition: opacity var(--transition-slow) ease, visibility var(--transition-slow) ease; }
-.loading-container { display: flex; flex-direction: column; align-items: center; gap: 2rem; }
-.loading-text { font-size: var(--font-size-lg); color: var(--accent-color); letter-spacing: 2px; text-align: center; }
-.loading-progress { width: 200px; height: 4px; background-color: var(--border-color); border-radius: 2px; overflow: hidden; margin-top: 1rem; }
-.loading-bar { width: 0%; height: 100%; background-color: var(--accent-color); border-radius: 2px; transition: width 0.3s ease; }
-.scripture { font-style: italic; padding-left: 1rem; border-left: 2px solid var(--border-color); margin: 1rem 0; }
-@keyframes flicker { 0%, 100% { opacity: 0.9; } 25% { opacity: 0.8; } 50% { opacity: 1; } 75% { opacity: 0.85; } }
-@media (max-width: 992px) { :root { --prayer-width: 50%; --model-width: 50%; } }
-@media (max-width: 768px) { .main-content { flex-direction: column; } :root { --prayer-width: 100%; --model-width: 100%; } .prayer-section { height: 60%; } .model-section { height: 40%; } }
-.settings-panel { position: fixed; top: 0; right: -400px; width: 380px; height: 100vh; background-color: var(--overlay-color); backdrop-filter: blur(10px); border-left: 1px solid var(--border-color); z-index: var(--z-modal); transition: right var(--transition-medium) ease; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3); }
-.settings-panel.visible { right: 0; }
-.settings-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-.settings-header h2 { margin: 0; font-size: var(--font-size-lg); }
-.settings-close-btn { background: transparent; border: none; color: var(--text-color); font-size: var(--font-size-lg); cursor: pointer; }
-.settings-content { padding: 1.5rem; }
-.settings-section { margin-bottom: 2rem; }
-.settings-section h3 { margin-bottom: 1rem; font-size: var(--font-size-md); }
-.setting-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.setting-item label { flex: 1; }
-.setting-item select, .range-with-value { flex: 1; }
-.range-with-value { display: flex; align-items: center; }
-.toggle-container { display: flex; justify-content: flex-end; align-items: center; flex: 1; }
-.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.3); transition: .4s; border-radius: 24px; }
-.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: var(--text-color); transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: var(--primary-color); }
-input:checked + .slider:before { transform: translateX(26px); }
-.settings-actions { display: flex; justify-content: space-between; margin-top: 2rem; }
-.settings-save-btn, .settings-reset-btn { padding: 0.75rem 1.5rem; border: none; border-radius: var(--border-radius-small); font-family: var(--font-primary); cursor: pointer; }
-.settings-save-btn { background-color: var(--primary-color); color: var(--text-color); }
-.settings-reset-btn { background-color: rgba(0,0,0,0.2); color: var(--text-color); border: 1px solid var(--border-color); }
-.prayer-settings-btn { position: absolute; bottom: 20px; right: 20px; background-color: var(--secondary-color); color: var(--text-color); border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); transition: all var(--transition-fast) ease; z-index: var(--z-modal); }
-.prayer-settings-btn:hover { transform: translateY(-2px) rotate(30deg); }
-.progress-container { width: 100%; margin: 1rem 0; }
-.progress-bar { width: 100%; height: 6px; background-color: rgba(210, 180, 140, 0.2); border-radius: 3px; overflow: hidden; margin-bottom: 0.5rem; }
-.progress-fill { height: 100%; background-color: var(--accent-color); width: 0%; transition: width 0.5s ease; box-shadow: 0 0 5px var(--glow-color); }
-.progress-text { text-align: center; font-size: var(--font-size-xs); color: var(--text-color); opacity: 0.8; }
-.mourning-announcement { display: none; } /* Styles for mourning mode are here if needed */
-body.theme-mourning { --primary-color: #4a4a4a; --secondary-color: #333333; --accent-color: #999999; --text-color: #f5f5f5; --background-color: #000000; --overlay-color: rgba(0, 0, 0, 0.9); --border-color: rgba(100, 100, 100, 0.3); --shadow-color: rgba(0, 0, 0, 0.8); --glow-color: rgba(150, 150, 150, 0.3); }
-body.theme-dark { --primary-color: #5D5D8D; --secondary-color: #30305D; --accent-color: #9D9DCD; --text-color: #F5F5FF; --background-color: #1A1A2F; --overlay-color: rgba(26, 26, 47, 0.85); --border-color: rgba(157, 157, 205, 0.3); }
-body.theme-light { --primary-color: #8D785D; --secondary-color: #5D4E30; --accent-color: #D3B88C; --text-color: #1A1A1A; --background-color: #F5F5F0; --overlay-color: rgba(245, 245, 240, 0.85); --border-color: rgba(141, 120, 93, 0.3); }
-body.theme-sepia { --primary-color: #8D5D3B; --secondary-color: #5D3D20; --accent-color: #D38D58; --text-color: #33200D; --background-color: #F5E8D8; --overlay-color: rgba(245, 232, 216, 0.85); --border-color: rgba(141, 93, 59, 0.3); }
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) transparent;
+}
+
+body {
+    font-family: var(--font-secondary);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+    background-color: rgba(210, 180, 140, 0.2);
+    color: var(--text-color);
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 3px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    color: var(--accent-color);
+    letter-spacing: 1px;
+    line-height: 1.3;
+}
+
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: color var(--transition-fast) ease;
+}
+
+a:hover {
+    color: var(--text-color);
+}
+
+button {
+    cursor: pointer;
+    font-family: var(--font-primary);
+}
+
+/* Main container */
+.app-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Background effects */
+.background-effects {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-base);
+    pointer-events: none;
+}
+
+.gradient-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, rgba(26, 21, 15, 0.7) 0%, rgba(15, 12, 9, 0.9) 70%, rgba(10, 8, 6, 1) 100%);
+    z-index: var(--z-base);
+}
+
+.particles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: calc(var(--z-base) + 1);
+}
+
+.vignette {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.5) 100%);
+    z-index: calc(var(--z-base) + 2);
+}
+
+.candle-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, rgba(255, 220, 150, 0.05) 0%, transparent 70%);
+    mix-blend-mode: overlay;
+    z-index: calc(var(--z-base) + 3);
+    animation: flicker 8s infinite alternate;
+}
+
+.light-rays {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><defs><radialGradient id="rgrad" cx="50%" cy="50%" r="75%" fx="50%" fy="50%"><stop offset="0%" style="stop-color:rgb(255,220,150);stop-opacity:0.05" /><stop offset="100%" style="stop-color:rgb(255,220,150);stop-opacity:0" /></radialGradient></defs><rect x="0" y="0" width="100" height="100" fill="url(%23rgrad)" /></svg>');
+    background-size: cover;
+    mix-blend-mode: screen;
+    opacity: 0.5;
+    z-index: calc(var(--z-base) + 4);
+    animation: rotate 240s linear infinite;
+}
+
+/* Main content layout */
+.main-content {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    z-index: var(--z-above);
+    display: none; /* Initially hidden, shown after start */
+}
+
+/* Prayer section */
+.prayer-section {
+    position: relative;
+    width: var(--prayer-width);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: calc(var(--z-above) + 1);
+}
+
+.prayer-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay-color);
+    backdrop-filter: blur(8px);
+    border-right: 1px solid var(--border-color);
+    z-index: calc(var(--z-above) + 2);
+}
+
+.prayer-scroll {
+    position: relative;
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--padding-standard);
+    z-index: calc(var(--z-above) + 3);
+    margin: 1rem;
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 1) 5%, rgba(0, 0, 0, 1) 95%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 1) 5%, rgba(0, 0, 0, 1) 95%, transparent 100%);
+}
+
+.prayer-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.prayer-title {
+    font-size: var(--font-size-2xl);
+    color: var(--accent-color);
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px var(--glow-color);
+    position: relative;
+}
+
+.prayer-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 2px;
+    background-color: var(--accent-color);
+    box-shadow: 0 0 5px var(--glow-color);
+}
+
+.prayer-instructions {
+    font-style: italic;
+    margin: 1.5rem 0;
+    opacity: 0.8;
+    font-size: var(--font-size-md);
+}
+
+.prayer-text {
+    font-size: var(--font-size-lg);
+    line-height: 1.8;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 5px var(--shadow-color);
+}
+
+.prayer-text p {
+    margin-bottom: 1rem;
+}
+
+.prayer-controls {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    backdrop-filter: blur(8px);
+    z-index: calc(var(--z-above) + 3);
+}
+
+.prayer-btn {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    padding: 0.75rem 1.5rem;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-sm);
+    letter-spacing: 1px;
+    transition: all var(--transition-fast) ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.prayer-btn:hover {
+    background-color: var(--primary-color);
+    box-shadow: 0 6px 12px var(--shadow-color), 0 0 15px var(--glow-color);
+    transform: translateY(-2px);
+}
+
+.prayer-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.prayer-btn.prev-btn {
+    padding-left: 1.25rem;
+}
+
+.prayer-btn.next-btn {
+    padding-right: 1.25rem;
+}
+
+.prayer-btn.play-btn {
+    flex: 1;
+    max-width: 120px;
+}
+
+/* Progress indicator */
+.rosary-progress {
+    position: relative;
+    width: 100%;
+    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.progress-title {
+    font-size: var(--font-size-md);
+    margin-bottom: 1rem;
+    color: var(--accent-color);
+}
+
+.decade-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.decade-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--border-color);
+    transition: all var(--transition-fast) ease;
+}
+
+.decade-dot.active {
+    background-color: var(--accent-color);
+    box-shadow: 0 0 8px var(--glow-color);
+}
+
+.decade-dot.completed {
+    background-color: var(--primary-color);
+    box-shadow: 0 0 5px var(--primary-color);
+}
+
+.bead-indicator {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 300px;
+}
+
+.bead {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--border-color);
+    transition: all var(--transition-fast) ease;
+}
+
+.bead.larger {
+    width: 14px;
+    height: 14px;
+    background-color: var(--accent-color);
+    opacity: 0.4;
+}
+
+.bead.active {
+    background-color: var(--accent-color);
+    box-shadow: 0 0 8px var(--glow-color);
+    transform: scale(1.2);
+}
+
+.bead.completed {
+    background-color: var(--primary-color);
+}
+
+/* 3D model section */
+.model-section {
+    position: relative;
+    width: var(--model-width);
+    height: 100%;
+    z-index: calc(var(--z-above) + 1);
+}
+
+.model-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: calc(var(--z-above) + 2);
+}
+
+#model-canvas {
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+/* Mystery info panel */
+.mystery-info {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 300px;
+    background-color: var(--overlay-color);
+    border-radius: var(--border-radius-small);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 20px var(--shadow-color);
+    z-index: calc(var(--z-above) + 3);
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: all var(--transition-medium) ease;
+    pointer-events: none;
+}
+
+.mystery-info.visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mystery-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.mystery-description {
+    font-size: var(--font-size-sm);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.mystery-fruits {
+    font-size: var(--font-size-xs);
+    font-style: italic;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Landing page */
+.landing-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-modal);
+    transition: opacity var(--transition-slow) ease, transform var(--transition-slow) ease;
+}
+
+.landing-content {
+    max-width: 800px;
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--overlay-color);
+    border-radius: var(--border-radius-large);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 40px var(--shadow-color);
+    animation: float 8s ease-in-out infinite;
+}
+
+.app-logo {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 20px var(--glow-color));
+}
+
+.app-title {
+    font-size: var(--font-size-3xl);
+    margin-bottom: 1rem;
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px var(--glow-color);
+}
+
+.app-subtitle {
+    font-size: var(--font-size-md);
+    margin-bottom: 2.5rem;
+    opacity: 0.8;
+}
+
+.language-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.language-selection-label {
+    font-size: var(--font-size-lg);
+    margin-bottom: 0.5rem;
+}
+
+.language-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.language-btn {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    padding: 0.75rem 1.5rem;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast) ease;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.language-btn:hover:not(.disabled) {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--shadow-color), 0 0 10px var(--glow-color);
+}
+
+.language-btn.active {
+    background-color: var(--primary-color);
+    box-shadow: 0 4px 12px var(--shadow-color), 0 0 15px var(--glow-color);
+}
+
+.language-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.coming-soon {
+    font-size: var(--font-size-xs);
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.rosary-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.rosary-selection-label {
+    font-size: var(--font-size-lg);
+    margin-bottom: 1rem;
+}
+
+.mystery-selection {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.mystery-btn {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    padding: 0.75rem 1.5rem;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast) ease;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.mystery-btn:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--shadow-color), 0 0 10px var(--glow-color);
+}
+
+.mystery-btn.active {
+    background-color: var(--primary-color);
+    box-shadow: 0 4px 12px var(--shadow-color), 0 0 15px var(--glow-color);
+}
+
+.start-btn {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: var(--border-radius-large);
+    padding: 1rem 2.5rem;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-lg);
+    letter-spacing: 2px;
+    transition: all var(--transition-fast) ease;
+    box-shadow: 0 8px 16px var(--shadow-color);
+    margin-bottom: 2rem;
+}
+
+.start-btn:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 24px var(--shadow-color), 0 0 20px var(--glow-color);
+}
+
+.start-btn:active {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 6px 12px var(--shadow-color);
+}
+
+.app-version {
+    font-size: var(--font-size-xs);
+    opacity: 0.6;
+    font-style: italic;
+}
+
+/* Date confirmation dialog */
+.date-confirmation-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-overlay);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-medium) ease;
+}
+
+.date-confirmation-dialog.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.date-confirmation-content {
+    width: 90%;
+    max-width: 500px;
+    background-color: var(--overlay-color);
+    border-radius: var(--border-radius-medium);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 40px var(--shadow-color);
+    padding: 2rem;
+    transform: translateY(20px);
+    transition: transform var(--transition-medium) ease;
+    text-align: center;
+}
+
+.date-confirmation-dialog.visible .date-confirmation-content {
+    transform: translateY(0);
+}
+
+.date-confirmation-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.date-confirmation-buttons button {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: var(--border-radius-medium);
+    padding: 0.75rem 2rem;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-md);
+    transition: all var(--transition-fast) ease;
+    margin: 0 0.5rem;
+}
+
+.date-confirmation-buttons button:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--shadow-color);
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-overlay);
+    transition: opacity var(--transition-slow) ease, visibility var(--transition-slow) ease;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.loading-icon {
+    width: 120px;
+    height: 120px;
+    position: relative;
+}
+
+.loading-circle {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+}
+
+.loading-circle:nth-child(2) {
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+    border-top-color: var(--primary-color);
+    animation-duration: 1.5s;
+    animation-direction: reverse;
+}
+
+.loading-circle:nth-child(3) {
+    width: 60%;
+    height: 60%;
+    top: 20%;
+    left: 20%;
+    border-top-color: var(--secondary-color);
+    animation-duration: 1s;
+}
+
+.loading-text {
+    font-size: var(--font-size-lg);
+    color: var(--accent-color);
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.loading-progress {
+    width: 200px;
+    height: 4px;
+    background-color: var(--border-color);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.loading-bar {
+    width: 0%;
+    height: 100%;
+    background-color: var(--accent-color);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Notification */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: var(--overlay-color);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    border-radius: var(--border-radius-small);
+    padding: 1rem;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    z-index: var(--z-tooltip);
+    transform: translateX(120%);
+    transition: transform var(--transition-medium) ease;
+    max-width: 300px;
+}
+
+.notification.visible {
+    transform: translateX(0);
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.notification-title {
+    font-size: var(--font-size-sm);
+    font-weight: bold;
+}
+
+.notification-close {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: var(--font-size-md);
+    line-height: 1;
+}
+
+.notification-message {
+    font-size: var(--font-size-xs);
+}
+
+/* Scripture styling */
+.scripture {
+    font-style: italic;
+    padding-left: 1rem;
+    border-left: 2px solid var(--border-color);
+    margin: 1rem 0;
+}
+
+.fruits {
+    font-weight: bold;
+    margin-top: 1rem;
+    color: var(--accent-color);
+}
+
+/* Animations */
+@keyframes flicker {
+    0%, 100% {
+        opacity: 0.9;
+    }
+    25% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 0.85;
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px var(--glow-color);
+    }
+    50% {
+        box-shadow: 0 0 20px var(--glow-color);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    :root {
+        --prayer-width: 45%;
+        --model-width: 55%;
+    }
+}
+
+@media (max-width: 992px) {
+    :root {
+        --prayer-width: 50%;
+        --model-width: 50%;
+    }
+    
+    .prayer-title {
+        font-size: var(--font-size-xl);
+    }
+    
+    .prayer-text {
+        font-size: var(--font-size-md);
+    }
+    
+    .mystery-info {
+        width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+    }
+    
+    :root {
+        --prayer-width: 100%;
+        --model-width: 100%;
+    }
+    
+    .prayer-section {
+        height: 60%;
+    }
+    
+    .model-section {
+        height: 40%;
+    }
+    
+    .prayer-backdrop {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .app-title {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .mystery-btn {
+        padding: 0.5rem 1rem;
+        font-size: var(--font-size-xs);
+    }
+    
+    .mystery-info {
+        width: 90%;
+        max-width: 300px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@media (max-width: 480px) {
+    .prayer-controls {
+        flex-wrap: wrap;
+    }
+    
+    .prayer-btn {
+        padding: 0.5rem 1rem;
+        font-size: var(--font-size-xs);
+    }
+    
+    .start-btn {
+        padding: 0.75rem 1.5rem;
+        font-size: var(--font-size-md);
+    }
+    
+    .app-title {
+        font-size: var(--font-size-xl);
+    }
+}
+
+/* Add these styles to your styles.css file */
+
+/* Settings Panel */
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 380px;
+    height: 100vh;
+    background-color: var(--overlay-color);
+    backdrop-filter: blur(10px);
+    border-left: 1px solid var(--border-color);
+    z-index: var(--z-modal);
+    transition: right var(--transition-medium) ease;
+    overflow-y: auto;
+    padding: 0;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.settings-panel.visible {
+    right: 0;
+}
+
+.settings-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+}
+
+.settings-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+}
+
+.settings-content {
+    padding: 1.5rem;
+}
+
+.settings-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+}
+
+.settings-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: var(--font-size-md);
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.setting-item label {
+    flex: 1;
+}
+
+.setting-item select,
+.setting-item input[type="text"],
+.setting-item input[type="date"],
+.setting-item textarea {
+    flex: 1;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-small);
+    color: var(--text-color);
+    padding: 0.5rem;
+    font-family: var(--font-secondary);
+}
+
+.setting-item textarea {
+    width: 100%;
+    resize: vertical;
+}
+
+.range-with-value {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.range-with-value input[type="range"] {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.range-with-value span {
+    width: 40px;
+    text-align: right;
+}
+
+/* Fixed Toggle Switch CSS */
+.toggle-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    margin-left: 10px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: var(--text-color);
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Settings action buttons */
+.settings-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.settings-save-btn,
+.settings-reset-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius-small);
+    font-family: var(--font-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast) ease;
+}
+
+.settings-save-btn {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+}
+
+.settings-reset-btn {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.settings-save-btn:hover,
+.settings-reset-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Landing page settings button */
+.landing-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.settings-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: all var(--transition-fast) ease;
+}
+
+.settings-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Prayer page settings button */
+.prayer-settings-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all var(--transition-fast) ease;
+}
+
+.prayer-settings-btn:hover {
+    transform: translateY(-2px) rotate(30deg);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Improved Progress Indicator */
+.progress-container {
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background-color: rgba(210, 180, 140, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--accent-color);
+    width: 0%; /* Will be set by JS */
+    transition: width 0.5s ease;
+    box-shadow: 0 0 5px var(--glow-color);
+}
+
+.progress-text {
+    text-align: center;
+    font-size: var(--font-size-xs);
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.current-prayer-type {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-small);
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.prayer-icon {
+    margin-right: 0.5rem;
+    color: var(--accent-color);
+}
+
+.prayer-name {
+    font-family: var(--font-primary);
+    font-size: var(--font-size-xs);
+}
+
+/* Mourning Mode */
+.mourning-announcement {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #000;
+    color: #fff;
+    z-index: var(--z-tooltip);
+    display: none;
+}
+
+.mourning-announcement.visible {
+    display: block;
+}
+
+.mourning-content {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.mourning-content h2 {
+    margin: 0;
+    margin-right: 1rem;
+    font-size: var(--font-size-md);
+    color: #fff;
+}
+
+.mourning-content p {
+    margin: 0;
+}
+
+.mourning-close-btn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: var(--font-size-md);
+}
+
+/* Theme: Mourning */
+body.theme-mourning {
+    --primary-color: #4a4a4a;
+    --secondary-color: #333333;
+    --accent-color: #999999;
+    --text-color: #f5f5f5;
+    --background-color: #000000;
+    --overlay-color: rgba(0, 0, 0, 0.9);
+    --border-color: rgba(100, 100, 100, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.8);
+    --glow-color: rgba(150, 150, 150, 0.3);
+}
+
+body.theme-mourning .app-logo path,
+body.theme-mourning .app-logo circle {
+    stroke: #999999;
+}
+
+body.theme-mourning .app-logo circle[fill]:not([fill="none"]) {
+    fill: #999999;
+}
+
+/* Other themes */
+body.theme-dark {
+    --primary-color: #5D5D8D;
+    --secondary-color: #30305D;
+    --accent-color: #9D9DCD;
+    --text-color: #F5F5FF;
+    --background-color: #1A1A2F;
+    --overlay-color: rgba(26, 26, 47, 0.85);
+    --border-color: rgba(157, 157, 205, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --glow-color: rgba(157, 157, 255, 0.3);
+}
+
+body.theme-light {
+    --primary-color: #8D785D;
+    --secondary-color: #5D4E30;
+    --accent-color: #D3B88C;
+    --text-color: #1A1A1A;
+    --background-color: #F5F5F0;
+    --overlay-color: rgba(245, 245, 240, 0.85);
+    --border-color: rgba(141, 120, 93, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --glow-color: rgba(211, 184, 140, 0.4);
+}
+
+body.theme-sepia {
+    --primary-color: #8D5D3B;
+    --secondary-color: #5D3D20;
+    --accent-color: #D38D58;
+    --text-color: #33200D;
+    --background-color: #F5E8D8;
+    --overlay-color: rgba(245, 232, 216, 0.85);
+    --border-color: rgba(141, 93, 59, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --glow-color: rgba(211, 141, 88, 0.4);
+}
